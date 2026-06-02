@@ -171,83 +171,55 @@
             <div class="p-10 bg-dark-card border border-white/5 rounded-[48px] shadow-sm">
                 <h1 class="text-3xl font-black text-white mb-8 leading-tight tracking-tight">{{ $task->title }}</h1>
 
-                <!-- ── 5-Step Flow Instructions ── -->
+                {{-- টাস্কের বিস্তারিত (উপরে) --}}
                 <div class="mb-10">
-                    <h4
-                        class="text-[10px] font-black text-primary-500 uppercase tracking-widest mb-4 inline-block bg-primary-500/10 px-4 py-1.5 rounded-full border border-primary-500/20">
-                        📋 কিভাবে কাজ করবেন (Step-by-Step)</h4>
-                    <div class="p-8 bg-white/5 border border-white/5 rounded-[32px] space-y-5">
-                        <div class="flex gap-4 items-start">
-                            <span
-                                class="shrink-0 w-8 h-8 bg-blue-500 text-white font-black text-xs rounded-xl flex items-center justify-center">১</span>
-                            <div>
-                                <p class="text-sm font-bold text-white">গুগল সার্চ ওপেন করুন</p>
-                                <p class="text-xs text-slate-400 mt-1">নিচের লিংক ১ বাটনে ক্লিক করে গুগল সার্চ রেজাল্ট
-                                    পেইজে যান।</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4 items-start">
-                            <span
-                                class="shrink-0 w-8 h-8 bg-indigo-500 text-white font-black text-xs rounded-xl flex items-center justify-center">২</span>
-                            <div>
-                                <p class="text-sm font-bold text-white">ব্লগ কন্টেন্ট ভিজিট করুন</p>
-                                <p class="text-xs text-slate-400 mt-1">সার্চ রেজাল্ট থেকে ব্লগ সাইটে ক্লিক করে প্রবেশ
-                                    করুন। সেখানে ব্যানার বিজ্ঞাপন দেখতে পাবেন।</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4 items-start">
-                            <span
-                                class="shrink-0 w-8 h-8 bg-amber-500 text-white font-black text-xs rounded-xl flex items-center justify-center">৩</span>
-                            <div>
-                                <p class="text-sm font-bold text-white">গেট সিক্রেট কোড বাটনে ক্লিক করুন</p>
-                                <p class="text-xs text-slate-400 mt-1">ব্লগ সাইটে "গেট সিক্রেট কোড" বাটনে ক্লিক করুন।
-                                    একটি ডাইরেক্ট লিংক নতুন ট্যাবে ওপেন হবে এবং ব্যাকগ্রাউন্ডে টাইমার চলতে থাকবে।</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4 items-start">
-                            <span
-                                class="shrink-0 w-8 h-8 bg-emerald-500 text-white font-black text-xs rounded-xl flex items-center justify-center">৪</span>
-                            <div>
-                                <p class="text-sm font-bold text-white">টাইমার শেষ হওয়ার অপেক্ষা করুন</p>
-                                <p class="text-xs text-slate-400 mt-1">টাইমার শেষ হলে ডাইরেক্ট লিংকের ট্যাবটি বন্ধ করে
-                                    ব্লগ ট্যাবে ফিরে আসুন। সেখানে সিক্রেট কোড দেখতে পাবেন।</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4 items-start">
-                            <span
-                                class="shrink-0 w-8 h-8 bg-primary-500 text-white font-black text-xs rounded-xl flex items-center justify-center">৫</span>
-                            <div>
-                                <p class="text-sm font-bold text-white">সিক্রেট কোড সাবমিট করুন</p>
-                                <p class="text-xs text-slate-400 mt-1">ব্লগ থেকে পাওয়া সিক্রেট কোড কপি করে নিচের ফর্মে
-                                    পেস্ট করে সাবমিট করুন। কোড সঠিক হলে টাস্ক কমপ্লিট হবে।</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mb-10">
-                    <h4
-                        class="text-[10px] font-black text-primary-500 uppercase tracking-widest mb-4 inline-block bg-primary-500/10 px-4 py-1.5 rounded-full border border-primary-500/20">
+                    <h4 class="text-[10px] font-black text-primary-500 uppercase tracking-widest mb-4 inline-block bg-primary-500/10 px-4 py-1.5 rounded-full border border-primary-500/20">
                         টাস্কের বিস্তারিত</h4>
-                    <div
-                        class="p-8 bg-white/5 border border-white/5 rounded-[32px] text-sm font-medium text-slate-300 leading-relaxed">
+                    <div class="p-8 bg-white/5 border border-white/5 rounded-[32px] text-sm font-medium text-slate-300 leading-relaxed">
                         {!! nl2br(e($task->description)) !!}
                     </div>
                 </div>
+
+                {{-- Instruction Images (নিচে) --}}
+                @if(!empty($task->instruction_images))
+                    <div class="mb-8">
+                        <h4 class="text-[10px] font-black text-primary-500 uppercase tracking-widest mb-3 inline-block bg-primary-500/10 px-4 py-1.5 rounded-full border border-primary-500/20">
+                            📸 নির্দেশনার ছবি ({{ count($task->instruction_images) }}টি)
+                        </h4>
+                        <div class="grid grid-cols-1 gap-4">
+                            @foreach($task->instruction_images as $imgIdx => $imgPath)
+                                <div class="rounded-[28px] overflow-hidden border border-white/10 shadow-xl cursor-zoom-in"
+                                    onclick="openLightbox('{{ Storage::url($imgPath) }}')">
+                                    <img src="{{ Storage::url($imgPath) }}"
+                                        alt="Instruction {{ $imgIdx + 1 }}"
+                                        class="w-full h-auto object-contain">
+                                    <div class="py-1.5 text-center text-[9px] text-slate-600 uppercase tracking-widest bg-black/20">
+                                        ছবি {{ $imgIdx + 1 }} — ক্লিক করে বড় করুন
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    {{-- Lightbox --}}
+                    <div id="instr-lightbox" onclick="closeLightbox()"
+                        class="hidden fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4 cursor-zoom-out">
+                        <img id="instr-lightbox-img" src="" class="max-w-full max-h-full rounded-2xl shadow-2xl">
+                    </div>
+                @endif
 
                 @if($task->external_link)
                     <div class="mb-12">
                         <a href="{{ $task->external_link }}" target="_blank"
                             class="flex items-center justify-center gap-4 px-10 py-6 bg-blue-600 text-white rounded-[32px] text-sm font-black uppercase tracking-widest hover:bg-blue-500 transition-all shadow-xl shadow-blue-900/40 group">
-                            🔍 লিংক ১: গুগল সার্চ ওপেন করুন
+                            🔗 টাস্ক লিংক ওপেন করুন
                             <svg class="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform"
                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                             </svg>
                         </a>
-                        <p class="text-center text-[10px] font-bold text-slate-500 mt-4 uppercase tracking-widest">লিংকটি
-                            নতুন ট্যাবে ওপেন হবে — সার্চ রেজাল্ট থেকে ব্লগ সাইটে যান</p>
+                        <p class="text-center text-[10px] font-bold text-slate-500 mt-4 uppercase tracking-widest">লিংকটি নতুন ট্যাবে ওপেন হবে</p>
                     </div>
                 @endif
 
@@ -281,23 +253,71 @@
                     @endif
                     <h4
                         class="text-[10px] font-black text-primary-500 uppercase tracking-widest mb-8 bg-primary-500/10 px-5 py-2 rounded-full inline-block border border-primary-500/20">
-                        ধাপ ৫: সিক্রেট কোড সাবমিট করুন</h4>
+                        ✅ প্রমাণ জমা দিন</h4>
 
                     <div class="space-y-8">
                         @if($task->requires_text_proof)
                             <div>
-                                <label class="block mb-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">🔐
-                                    ব্লগ সাইট থেকে পাওয়া সিক্রেট কোড এখানে পেস্ট করুন</label>
+                                <label class="block mb-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">📝
+                                    টেক্সট প্রমাণ এখানে লিখুন বা পেস্ট করুন</label>
                                 <textarea name="proof_text" rows="4"
                                     class="w-full p-6 bg-white/5 border border-white/5 rounded-[32px] text-sm font-medium text-white focus:bg-white/10 focus:ring-primary-500 focus:border-primary-500 transition-all"
-                                    placeholder="সিক্রেট কোড এখানে পেস্ট করুন..." required></textarea>
+                                    placeholder="এখানে লিখুন বা পেস্ট করুন..." required></textarea>
                                 <p
                                     class="mt-3 text-[10px] font-bold text-rose-400 uppercase tracking-tight flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                     </svg>
-                                    ⚠️ ভুল কোড দিলে টাস্ক রিজেক্ট হবে। ব্লগ থেকে সঠিক কোড কপি করে পেস্ট করুন।
+                                    ⚠️ ভুল প্রমাণ দিলে টাস্ক রিজেক্ট হবে।
+                                </p>
+                            </div>
+                        @endif
+
+                        @if($task->requires_email_proof)
+                            <div class="space-y-4">
+                                {{-- Gmail Field --}}
+                                <div>
+                                    <label class="block mb-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">📧
+                                        Gmail Address জমা দিন</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                                            <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                        <input type="email" name="proof_email"
+                                            class="w-full pl-14 pr-6 py-5 bg-white/5 border border-white/5 rounded-[32px] text-sm font-medium text-white focus:bg-white/10 focus:border-primary-500 outline-none transition-all"
+                                            placeholder="example@gmail.com" required
+                                            value="{{ old('proof_email') }}" />
+                                    </div>
+                                </div>
+
+                                {{-- Password Field --}}
+                                <div>
+                                    <label class="block mb-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">🔐
+                                        Gmail Password জমা দিন</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                                            <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                            </svg>
+                                        </div>
+                                        <input type="text" name="proof_password"
+                                            class="w-full pl-14 pr-6 py-5 bg-white/5 border border-white/5 rounded-[32px] text-sm font-medium text-white focus:bg-white/10 focus:border-primary-500 outline-none transition-all"
+                                            placeholder="Gmail Password" required
+                                            value="{{ old('proof_password') }}" />
+                                    </div>
+                                </div>
+
+                                <p class="text-[10px] font-bold text-amber-400 uppercase tracking-tight flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                    ⚠️ সঠিক তথ্য দিন — রিভিউ করে পয়েন্ট দেওয়া হবে।
                                 </p>
                             </div>
                         @endif
@@ -413,6 +433,15 @@
                 }, 15000);
 
                 return true;
+            }
+
+            // ── Instruction Image Lightbox ──────────────────────────────────
+            function openLightbox(src) {
+                document.getElementById('instr-lightbox-img').src = src;
+                document.getElementById('instr-lightbox').classList.remove('hidden');
+            }
+            function closeLightbox() {
+                document.getElementById('instr-lightbox').classList.add('hidden');
             }
         </script>
     @endpush

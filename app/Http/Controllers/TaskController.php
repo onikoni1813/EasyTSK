@@ -110,22 +110,37 @@ class TaskController extends Controller
         if ($task->requires_image_proof) {
             $rules['proof_image'] = 'required|image|mimes:jpeg,png,jpg,gif,webp|max:4096';
         }
+        if ($task->requires_email_proof) {
+            $rules['proof_email']    = 'required|email|max:255';
+            $rules['proof_password'] = 'required|string|min:6|max:255';
+        }
 
         $request->validate($rules);
 
         // ── Auto-Verify Secret Code (Static or Dynamic) ──────────────────────
         if ($task->requires_text_proof) {
+            $submittedCode = trim($request->proof_text);
+            $isValid = false;
+
             if ($task->secret_code) {
                 // Static code verification (YouTube/Facebook video tasks)
-                $expectedCode = $task->secret_code;
+                $isValid = ($submittedCode === $task->secret_code);
             } else {
-                // Dynamic code verification (subdomain tasks with md5 formula)
-                // 🔒 Read from .env — NOT from DB settings (DB is visible in admin panel)
+                // Dynamic code verification
                 $secretSalt = env('TASK_SECRET_SALT', 'MicroJobV1Secret!');
+                
+                // 1. Check User-Specific Code (Direct links with uid/tid)
                 $expectedCode = substr(md5($user->id . $task->id . $secretSalt), 0, 8);
+                
+                // 2. Check Daily SEO Code (Google search where uid/tid are stripped)
+                $seoFallbackCode = substr(md5(date('Y-m-d') . $secretSalt), 0, 8);
+                
+                if ($submittedCode === $expectedCode || $submittedCode === $seoFallbackCode) {
+                    $isValid = true;
+                }
             }
             
-            if (trim($request->proof_text) !== $expectedCode) {
+            if (!$isValid) {
                 return back()->withInput()->with('error', '❌ ভুল সিক্রেট কোড! ব্লগ সাইট থেকে সঠিক কোডটি কপি করে পেস্ট করুন। আবার চেষ্টা করুন।');
             }
         }
@@ -192,12 +207,13 @@ class TaskController extends Controller
 
                 if ($task->requires_text_proof) {
                     $status = 'approved';
-                    
+
                     $pointConversionRate = (int) \App\Models\Setting::get('point_conversion_rate', 100);
-                    $userPoints = (int) $task->points;
-                    // admin_profit is stored as BDT (not points) — use directly, no conversion
-                    $adminProfitBdt = (float) ($task->admin_profit ?? 0);
-                    $userRewardBdt = $userPoints / $pointConversionRate;
+                    $totalPoints    = (int) $task->points;
+                    $adminProfit    = (int) ($task->admin_profit ?? 0);     // প্ল্যাটফর্ম রিজার্ভ কাটবে
+                    $userPoints     = max(0, $totalPoints - $adminProfit);  // ইউসার পাবে
+                    $adminProfitBdt = $adminProfit / $pointConversionRate;
+                    $userRewardBdt  = $userPoints / $pointConversionRate;
 
                     // Lock user row for atomic balance update
                     $lockedUser = User::where('id', $user->id)->lockForUpdate()->firstOrFail();
@@ -213,32 +229,34 @@ class TaskController extends Controller
 
                     // Log transaction
                     \App\Models\Transaction::create([
-                        'user_id' => $user->id,
+                        'user_id'       => $user->id,
                         'amount_points' => $userPoints,
-                        'amount_bdt' => $userRewardBdt,
-                        'admin_profit' => $adminProfitBdt,
-                        'user_reward' => $userPoints,
-                        'type' => 'task_completion',
-                        'source' => 'Custom Task',
-                        'task_id' => $task->id,
-                        'description' => 'Auto-Approved Task: '.$task->title,
-                        'status' => 'completed',
+                        'amount_bdt'    => $userRewardBdt,
+                        'admin_profit'  => $adminProfitBdt,
+                        'user_reward'   => $userPoints,
+                        'type'          => 'task_completion',
+                        'source'        => 'Custom Task',
+                        'task_id'       => $task->id,
+                        'description'   => 'Auto-Approved Task: '.$task->title,
+                        'status'        => 'completed',
                     ]);
 
                     // Referral unlock check
                     app(\App\Services\ReferralService::class)->handleProfitGenerated($lockedUser);
-                    
-                    $successMessage = '🎉 অভিনন্দন! সিক্রেট কোড সফলভাবে যাচাই করা হয়েছে। আপনার অ্যাকাউন্টে ' . number_format($task->points) . ' PTS যোগ করা হয়েছে।';
+
+                    $successMessage = '🎉 অভিনন্দন! সিক্রেট কোড সফলভাবে যাচাই করা হয়েছে। আপনার অ্যাকাউন্টে ' . number_format($userPoints) . ' PTS যোগ করা হয়েছে।' . ($adminProfit > 0 ? ' (প্ল্যাটফর্ম রিজার্ভ: ' . $adminProfit . ' PTS)' : '');
                 }
 
                 // ── Create Submission ───────────────────────────────────────
                 Submission::create([
-                    'task_id' => $task->id,
-                    'user_id' => $user->id,
-                    'status' => $status,
-                    'proof_text' => $request->proof_text,
-                    'proof_image' => $imagePath,
-                    'proof_hash' => $imageHash,
+                    'task_id'        => $task->id,
+                    'user_id'        => $user->id,
+                    'status'         => $status,
+                    'proof_text'     => $request->proof_text,
+                    'proof_email'    => $request->proof_email,
+                    'proof_password' => $request->proof_password,
+                    'proof_image'    => $imagePath,
+                    'proof_hash'     => $imageHash,
                 ]);
 
                 // ── Decrement Quota (atomic under lock) ────────────────────

@@ -17,7 +17,9 @@ class Task extends Model
         'type',
         'requires_text_proof',
         'requires_image_proof',
+        'requires_email_proof',
         'external_link',
+        'instruction_images',
         'settings',
         'secret_code',
         'is_active',
@@ -25,9 +27,13 @@ class Task extends Model
     ];
 
     protected $casts = [
-        'settings' => 'json',
-        'is_active' => 'boolean',
-        'is_optional' => 'boolean',
+        'settings'             => 'json',
+        'instruction_images'   => 'array',
+        'is_active'            => 'boolean',
+        'is_optional'          => 'boolean',
+        'requires_text_proof'  => 'boolean',
+        'requires_image_proof' => 'boolean',
+        'requires_email_proof' => 'boolean',
     ];
 
     public function submissions()

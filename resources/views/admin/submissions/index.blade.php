@@ -47,7 +47,7 @@
                                 <div class="flex items-center gap-4">
                                     <div
                                         class="w-12 h-12 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-primary-500 transition-all font-black text-xs uppercase">
-                                        {{ substr($submission->user->name, 0, 2) }}
+                                        {{ strtoupper(substr(optional($submission->user)->name ?? 'D', 0, 2)) }}
                                     </div>
                                     <div class="max-w-[200px]">
                                         <div
@@ -78,6 +78,20 @@
                                             onclick="alert('Proof Text: ' + this.dataset.text)"
                                             class="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-slate-400 hover:text-white hover:bg-indigo-600 hover:border-indigo-500 transition-all uppercase tracking-widest">
                                             View Code
+                                        </button>
+                                    @endif
+                                    @if($submission->proof_email)
+                                        <button
+                                            onclick="alert('Email: {{ e($submission->proof_email) }}')"
+                                            class="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-slate-400 hover:text-white hover:bg-emerald-600 hover:border-emerald-500 transition-all uppercase tracking-widest">
+                                            📧 {{ $submission->proof_email }}
+                                        </button>
+                                    @endif
+                                    @if($submission->proof_password)
+                                        <button
+                                            onclick="alert('Password: {{ e($submission->proof_password) }}')"
+                                            class="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-slate-400 hover:text-white hover:bg-violet-600 hover:border-violet-500 transition-all uppercase tracking-widest">
+                                            🔐 Pass দেখুন
                                         </button>
                                     @endif
                                 </div>
@@ -137,7 +151,7 @@
                         <div class="flex items-center gap-4">
                             <div
                                 class="w-12 h-12 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-primary-500 font-black text-xs uppercase">
-                                {{ substr($submission->user->name, 0, 2) }}
+                                {{ strtoupper(substr(optional($submission->user)->name ?? 'D', 0, 2)) }}
                             </div>
                             <div class="max-w-[180px]">
                                 <div class="font-black text-white uppercase tracking-tight truncate">
@@ -170,6 +184,17 @@
                                     onclick="alert('Proof Text: ' + this.dataset.text)"
                                     class="flex-1 min-w-[120px] px-4 py-3 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all">
                                     View Code
+                                </button>
+                            @endif
+                            @if($submission->proof_email)
+                                <div class="flex-1 min-w-[120px] px-4 py-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-[10px] font-black uppercase tracking-widest">
+                                    📧 {{ $submission->proof_email }}
+                                </div>
+                            @endif
+                            @if($submission->proof_password)
+                                <button onclick="alert('Password: {{ e($submission->proof_password) }}')"
+                                    class="flex-1 min-w-[120px] px-4 py-3 bg-violet-500/10 border border-violet-500/20 text-violet-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-violet-500 hover:text-white transition-all">
+                                    🔐 Pass দেখুন
                                 </button>
                             @endif
                         </div>

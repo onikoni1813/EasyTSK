@@ -47,14 +47,14 @@ class AdminSubmissionController extends Controller
                 $user = $fresh->user;
 
                 $rate = (int) setting('point_conversion_rate', 100);
-                $platformShare = (float) setting('custom_platform_share_percent', 20);
 
-                $userPoints = $task->points;
-                $adminProfitPts = $task->admin_profit;
-                $adminProfitBdt = $adminProfitPts / $rate;
-                $userRewardBdt = $userPoints / $rate;
+                $totalPoints    = (int) $task->points;                    // মোট পয়েন্ট
+                $adminProfit    = (int) ($task->admin_profit ?? 0);        // প্ল্যাটফর্ম কাটবে
+                $userPoints     = max(0, $totalPoints - $adminProfit);     // ইউসার পাবে
+                $userRewardBdt  = $userPoints / $rate;
+                $adminProfitBdt = $adminProfit / $rate;
 
-                // Credit user
+                // Credit user (deducted from total)
                 $user->increment('points', $userPoints);
                 $user->increment('total_earned_bdt', $userRewardBdt);
                 $user->increment('total_earned_lifetime', $userRewardBdt);
@@ -70,24 +70,24 @@ class AdminSubmissionController extends Controller
                 }
 
                 Transaction::create([
-                    'user_id' => $user->id,
+                    'user_id'       => $user->id,
                     'amount_points' => $userPoints,
-                    'amount_bdt' => $userRewardBdt,
-                    'admin_profit' => $adminProfitBdt,
-                    'user_reward' => $userPoints,
-                    'type' => 'task_completion',
-                    'source' => ucfirst($task->type),
-                    'task_id' => $task->id,
-                    'reference_id' => $fresh->id,
-                    'description' => 'Task approved: '.$task->title,
-                    'status' => 'completed',
+                    'amount_bdt'    => $userRewardBdt,
+                    'admin_profit'  => $adminProfitBdt,
+                    'user_reward'   => $userPoints,
+                    'type'          => 'task_completion',
+                    'source'        => ucfirst($task->type),
+                    'task_id'       => $task->id,
+                    'reference_id'  => $fresh->id,
+                    'description'   => 'Task approved: '.$task->title,
+                    'status'        => 'completed',
                 ]);
 
                 UserNotification::create([
                     'user_id' => $user->id,
-                    'type' => 'success',
-                    'title' => '✅ টাস্ক অ্যাপ্রুভড!',
-                    'message' => '"'.$task->title.'" সফলভাবে যাচাই হয়েছে। আপনার অ্যাকাউন্টে '.$userPoints.' পয়েন্ট যোগ হয়েছে।',
+                    'type'    => 'success',
+                    'title'   => '✅ টাস্ক অ্যাপ্রুভড!',
+                    'message' => '"'.$task->title.'" সফলভাবে যাচাই হয়েছে। আপনার অ্যাকাউন্টে '.$userPoints.' পয়েন্ট যোগ হয়েছে।'.($adminProfit > 0 ? ' (প্ল্যাটফর্ম রিজার্ভ: '.$adminProfit.' PTS)' : ''),
                 ]);
 
                 // ── Referral unlock check ─────────────────────────────────────

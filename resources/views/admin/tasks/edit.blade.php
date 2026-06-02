@@ -15,7 +15,7 @@
         </a>
     </div>
 
-    <form action="{{ route('admin.tasks.update', $task) }}" method="POST" class="space-y-8">
+    <form action="{{ route('admin.tasks.update', $task) }}" method="POST" enctype="multipart/form-data" class="space-y-8">
         @csrf
         @method('PUT')
 
@@ -57,7 +57,56 @@
                                 required>{{ $task->description }}</textarea>
                         </div>
 
+                        {{-- Multiple Instruction Images --}}
                         <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                                    📸 Instruction Images (Optional · Multiple)
+                                </label>
+                                <span class="text-[9px] text-slate-600 uppercase tracking-widest">Max 10MB each</span>
+                            </div>
+
+                            {{-- Existing saved images --}}
+                            @if(!empty($task->instruction_images))
+                                <div class="grid grid-cols-3 gap-3 mb-3" id="existing-images-grid">
+                                    @foreach($task->instruction_images as $imgIdx => $imgPath)
+                                        <div class="relative rounded-2xl overflow-hidden border border-white/10 group" id="existing-img-{{ $imgIdx }}">
+                                            <img src="{{ Storage::url($imgPath) }}" class="w-full h-28 object-cover">
+                                            <button type="button"
+                                                onclick="markRemoveImage({{ $imgIdx }}, this.closest('div[id]'))"
+                                                class="absolute top-1 right-1 bg-rose-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black opacity-0 group-hover:opacity-100 transition-opacity">
+                                                &times;
+                                            </button>
+                                            <input type="hidden" name="remove_images[]" id="remove-flag-{{ $imgIdx }}" value="" disabled>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            {{-- New images preview grid --}}
+                            <div id="instr-preview-grid" class="grid grid-cols-3 gap-3 mb-3"></div>
+
+                            {{-- Upload Zone: label triggers SEPARATE trigger input --}}
+                            <label for="instr_trigger_edit"
+                                class="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-white/10 rounded-[28px] p-6 hover:border-primary-500/50 transition-all cursor-pointer group">
+                                <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-slate-500 group-hover:text-primary-500 transition-colors">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </div>
+                                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">আরও ছবি যোগ করুন</p>
+                            </label>
+
+                            {{-- Trigger: NOT submitted --}}
+                            <input type="file" id="instr_trigger_edit" accept="image/*" multiple class="hidden"
+                                onchange="addInstrImages(this)">
+
+                            {{-- Actual form field: managed via DataTransfer, NEVER reset --}}
+                            <input type="file" id="instruction_images_input" name="instruction_images[]"
+                                multiple class="hidden">
+                        </div>
+
+                        <div id="external-link-wrap">
                             <label for="external_link"
                                 class="block mb-3 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">External
                                 Signal Target (URL)</label>
@@ -102,13 +151,13 @@
                                 <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Require
                                     Screenshot Proof</p>
                             </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input id="requires_image_proof" name="requires_image_proof" type="checkbox" value="1"
-                                    {{ $task->requires_image_proof ? 'checked' : '' }} class="sr-only peer">
-                                <div
-                                    class="w-10 h-5 bg-white/10 rounded-full peer peer-checked:bg-primary-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5">
-                                </div>
-                            </label>
+                            <button type="button" id="toggle-image-proof"
+                                onclick="toggleProof('image')"
+                                class="relative w-10 h-5 rounded-full transition-all duration-200 {{ $task->requires_image_proof ? 'bg-primary-500' : 'bg-white/10' }}"
+                                aria-pressed="{{ $task->requires_image_proof ? 'true' : 'false' }}">
+                                <span id="thumb-image" class="absolute top-[2px] {{ $task->requires_image_proof ? 'left-[22px] bg-white' : 'left-[2px] bg-slate-400' }} w-4 h-4 rounded-full transition-all duration-200"></span>
+                            </button>
+                            <input type="hidden" id="requires_image_proof" name="requires_image_proof" value="{{ $task->requires_image_proof ? '1' : '0' }}">
                         </div>
 
                         <div
@@ -120,12 +169,31 @@
                                 <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Require
                                     Text/Code Evidence</p>
                             </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input id="requires_text_proof" name="requires_text_proof" type="checkbox" value="1" {{ $task->requires_text_proof ? 'checked' : '' }} class="sr-only peer">
-                                <div
-                                    class="w-10 h-5 bg-white/10 rounded-full peer peer-checked:bg-primary-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5">
-                                </div>
-                            </label>
+                            <button type="button" id="toggle-text-proof"
+                                onclick="toggleProof('text')"
+                                class="relative w-10 h-5 rounded-full transition-all duration-200 {{ $task->requires_text_proof ? 'bg-primary-500' : 'bg-white/10' }}"
+                                aria-pressed="{{ $task->requires_text_proof ? 'true' : 'false' }}">
+                                <span id="thumb-text" class="absolute top-[2px] {{ $task->requires_text_proof ? 'left-[22px] bg-white' : 'left-[2px] bg-slate-400' }} w-4 h-4 rounded-full transition-all duration-200"></span>
+                            </button>
+                            <input type="hidden" id="requires_text_proof" name="requires_text_proof" value="{{ $task->requires_text_proof ? '1' : '0' }}">
+                        </div>
+
+                        <div
+                            class="p-6 bg-white/5 border border-white/5 rounded-[32px] flex items-center justify-between group">
+                            <div>
+                                <h4
+                                    class="text-[10px] font-black text-white uppercase tracking-tight group-hover:text-emerald-400 transition-colors">
+                                    📧 Email / Gmail Proof</h4>
+                                <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Require
+                                    Gmail Submission</p>
+                            </div>
+                            <button type="button" id="toggle-email-proof"
+                                onclick="toggleProof('email')"
+                                class="relative w-10 h-5 rounded-full transition-all duration-200 {{ $task->requires_email_proof ? 'bg-primary-500' : 'bg-white/10' }}"
+                                aria-pressed="{{ $task->requires_email_proof ? 'true' : 'false' }}">
+                                <span id="thumb-email" class="absolute top-[2px] {{ $task->requires_email_proof ? 'left-[22px] bg-white' : 'left-[2px] bg-slate-400' }} w-4 h-4 rounded-full transition-all duration-200"></span>
+                            </button>
+                            <input type="hidden" id="requires_email_proof" name="requires_email_proof" value="{{ $task->requires_email_proof ? '1' : '0' }}">
                         </div>
                     </div>
 
@@ -204,11 +272,12 @@
                         <div>
                             <label for="admin_profit"
                                 class="block mb-3 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">Platform
-                                Reserve (BDT)</label>
+                                Reserve (Points)</label>
                             <input type="number" step="0.01" id="admin_profit" name="admin_profit"
-                                value="{{ $task->admin_profit }}" placeholder="0.00"
+                                value="{{ $task->admin_profit }}" placeholder="0"
                                 class="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-white font-black text-sm focus:bg-white/10 transition-all placeholder:text-slate-400"
                                 required>
+                            <p class="text-[9px] text-slate-500 mt-2 font-bold uppercase tracking-widest">Admin profit তোলার জন্য পয়েন্ট সংখ্যা দিন</p>
                         </div>
 
                         <div>
@@ -280,4 +349,114 @@
             </div>
         </div>
     </form>
+
+    <script>
+        // ── Independent Toggle System ──────────────────────────────────────────
+        // প্রতিটি toggle সম্পূর্ণ স্বাধীন। একটা অন করলে অন্যটা affect হবে না।
+        // Initial state DB থেকে load হয়।
+        const proofState = {
+            image: {{ $task->requires_image_proof ? 'true' : 'false' }},
+            text:  {{ $task->requires_text_proof  ? 'true' : 'false' }},
+            email: {{ $task->requires_email_proof ? 'true' : 'false' }}
+        };
+
+        // Page load: email toggle ON হলে External Link লুকাও
+        (function() {
+            if (proofState.email) {
+                const w = document.getElementById('external-link-wrap');
+                if (w) w.style.display = 'none';
+            }
+        })();
+
+        function toggleProof(type) {
+            proofState[type] = !proofState[type];
+            const btn   = document.getElementById('toggle-' + type + '-proof');
+            const thumb = document.getElementById('thumb-' + type);
+            const input = document.getElementById('requires_' + type + '_proof');
+
+            if (proofState[type]) {
+                btn.classList.remove('bg-white/10');
+                btn.classList.add('bg-primary-500');
+                thumb.classList.remove('left-[2px]', 'bg-slate-400');
+                thumb.classList.add('left-[22px]', 'bg-white');
+                input.value = '1';
+                btn.setAttribute('aria-pressed', 'true');
+            } else {
+                btn.classList.add('bg-white/10');
+                btn.classList.remove('bg-primary-500');
+                thumb.classList.add('left-[2px]', 'bg-slate-400');
+                thumb.classList.remove('left-[22px]', 'bg-white');
+                input.value = '0';
+                btn.setAttribute('aria-pressed', 'false');
+            }
+
+            // Email toggle হলে External Link লুকিয়ে/দেখাও
+            const extWrap = document.getElementById('external-link-wrap');
+            const extInput = document.getElementById('external_link');
+            if (extWrap) {
+                if (proofState.email) {
+                    extWrap.style.display = 'none';
+                    if (extInput) { extInput.removeAttribute('required'); extInput.value = ''; }
+                } else {
+                    extWrap.style.display = '';
+                }
+            }
+        }
+
+        // ── Multiple Instruction Images (Edit) ─────────────────────────────
+        const selectedFiles = [];
+
+        function markRemoveImage(idx, el) {
+            const flag = document.getElementById('remove-flag-' + idx);
+            if (flag) { flag.disabled = false; flag.value = idx; }
+            if (el) el.remove();
+        }
+
+        function addInstrImages(trigger) {
+            const grid = document.getElementById('instr-preview-grid');
+            Array.from(trigger.files).forEach(file => {
+                const si = selectedFiles.length;
+                selectedFiles.push(file);
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const card = document.createElement('div');
+                    card.className = 'relative rounded-2xl overflow-hidden border border-white/10 group';
+                    card.id = 'new-instr-card-' + si;
+                    card.innerHTML = `
+                        <img src="${e.target.result}" class="w-full h-28 object-cover">
+                        <button type="button" onclick="removeNewInstr(${si})"
+                            class="absolute top-1 right-1 bg-rose-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black opacity-0 group-hover:opacity-100 transition-opacity">
+                            ×
+                        </button>
+                        <div class="absolute bottom-0 left-0 right-0 bg-black/60 text-[8px] text-white px-2 py-1 truncate">${file.name}</div>
+                    `;
+                    grid.appendChild(card);
+                };
+                reader.readAsDataURL(file);
+            });
+            syncNewFiles();
+            trigger.value = ''; // শুধু trigger reset — actual form field স্পর্শ হবে না
+        }
+
+        function removeNewInstr(idx) {
+            selectedFiles[idx] = null;
+            const c = document.getElementById('new-instr-card-' + idx);
+            if (c) c.remove();
+            syncNewFiles();
+        }
+
+        function syncNewFiles() {
+            const dt = new DataTransfer();
+            selectedFiles.forEach(f => { if (f) dt.items.add(f); });
+            // Assign to actual form field (NEVER reset this)
+            document.getElementById('instruction_images_input').files = dt.files;
+        }
+
+        function removeInstrImage() {
+            const inp = document.getElementById('remove_instruction_image');
+            if (inp) inp.value = '1';
+            // Hide the current image block
+            inp.closest('div.mb-4') && inp.closest('div.mb-4').remove();
+        }
+    </script>
 </x-admin-layout>

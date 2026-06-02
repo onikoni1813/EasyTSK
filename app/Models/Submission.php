@@ -11,6 +11,8 @@ class Submission extends Model
         'user_id',
         'status',
         'proof_text',
+        'proof_email',
+        'proof_password',
         'proof_image',
         'proof_hash',
         'admin_notes',
