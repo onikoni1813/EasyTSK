@@ -1,3 +1,24 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Global Select / Option Dark Theme Fix ──────────────────────────────────
+   Browser-native dropdowns ignore Tailwind's bg-white/5 (alpha-based).
+   We must use a solid color so the dropdown list doesn't flash white.
+   ───────────────────────────────────────────────────────────────────────── */
+select {
+    background-color: #1e2433;
+    color: white;
+    color-scheme: dark;
+}
+
+select option {
+    background-color: #1e2433 !important;
+    color: white !important;
+}
+
+select option:hover,
+select option:checked {
+    background-color: #2d3748 !important;
+    color: white !important;
+}

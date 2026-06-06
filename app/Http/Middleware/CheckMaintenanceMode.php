@@ -21,7 +21,7 @@ class CheckMaintenanceMode
             $adminPrefix = env('ADMIN_PREFIX', 'admin');
 
             // Allow admin routes, authentication routes, and administrators to bypass
-            if ($request->is("$adminPrefix*") || $request->is('login') || $request->is('logout') || ($request->user() && $request->user()->is_admin)) {
+            if ($request->is("$adminPrefix*") || $request->is('login') || $request->is('register') || $request->is('logout') || ($request->user() && $request->user()->is_admin)) {
                 return $next($request);
             }
 

@@ -84,6 +84,9 @@ Route::middleware(['auth', 'email.verified'])->group(function () {
         Route::post('/adsterra/verify-code', [AdsterraController::class, 'verifyCode'])
             ->middleware('throttle:5,1')  // Max 5 code attempts per minute
             ->name('adsterra.verify_code');
+
+        // Dynamic Offerwalls (admin-managed via database)
+        Route::get('/offerwalls/{offerwall:slug}', [App\Http\Controllers\OfferwallController::class, 'show'])->name('offerwalls.show');
     });
 
     // Notifications
@@ -167,6 +170,16 @@ Route::middleware(['auth', 'admin'])->prefix(config('app.admin_prefix', 'admin')
     Route::put('/domains/{domain}', [AdminTaskDomainController::class, 'update'])->name('domains.update');
     Route::post('/domains/{domain}/toggle', [AdminTaskDomainController::class, 'toggle'])->name('domains.toggle');
     Route::delete('/domains/{domain}', [AdminTaskDomainController::class, 'destroy'])->name('domains.destroy');
+
+    // Dynamic Offerwalls
+    Route::get('/offerwalls', [App\Http\Controllers\Admin\AdminOfferwallController::class, 'index'])->name('offerwalls.index');
+    Route::get('/offerwalls/create', [App\Http\Controllers\Admin\AdminOfferwallController::class, 'create'])->name('offerwalls.create');
+    Route::post('/offerwalls', [App\Http\Controllers\Admin\AdminOfferwallController::class, 'store'])->name('offerwalls.store');
+    Route::get('/offerwalls/{offerwall}/edit', [App\Http\Controllers\Admin\AdminOfferwallController::class, 'edit'])->name('offerwalls.edit');
+    Route::put('/offerwalls/{offerwall}', [App\Http\Controllers\Admin\AdminOfferwallController::class, 'update'])->name('offerwalls.update');
+    Route::post('/offerwalls/{offerwall}/toggle', [App\Http\Controllers\Admin\AdminOfferwallController::class, 'toggle'])->name('offerwalls.toggle');
+    Route::delete('/offerwalls/{offerwall}', [App\Http\Controllers\Admin\AdminOfferwallController::class, 'destroy'])->name('offerwalls.destroy');
+    Route::get('/offerwalls/{offerwall}/logs', [App\Http\Controllers\Admin\AdminOfferwallController::class, 'logs'])->name('offerwalls.logs');
 
     // Central Blog Posts
     Route::get('/posts', [AdminBlogPostController::class, 'index'])->name('posts.index');

@@ -87,20 +87,30 @@
                             <td class="px-8 py-6 text-center">
                                 <div class="flex flex-col items-center gap-2">
                                     @php
-                                        $used = $task->quota_max - $task->quota_remaining;
-                                        $pct  = $task->quota_max > 0 ? min(100, ($used / $task->quota_max) * 100) : 0;
+                                        $isUnlim = $task->quota_max == 0 || $task->quota_remaining == -1;
+                                        $used    = $isUnlim ? 0 : max(0, $task->quota_max - $task->quota_remaining);
+                                        $pct     = (!$isUnlim && $task->quota_max > 0) ? min(100, ($used / $task->quota_max) * 100) : 0;
                                         $barColor = $pct >= 100 ? 'bg-rose-500' : ($pct >= 75 ? 'bg-amber-500' : 'bg-emerald-500');
                                     @endphp
                                     <div class="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                        <div class="h-full {{ $barColor }} rounded-full transition-all" style="width: {{ $pct }}%"></div>
+                                        @if($isUnlim)
+                                            <div class="h-full bg-emerald-500 rounded-full" style="width:100%;opacity:0.3"></div>
+                                        @else
+                                            <div class="h-full {{ $barColor }} rounded-full transition-all" style="width: {{ $pct }}%"></div>
+                                        @endif
                                     </div>
-                                    <span class="text-[9px] font-black {{ $pct >= 100 ? 'text-rose-400' : 'text-slate-400' }} uppercase tracking-widest">
-                                        {{ $used }} / {{ $task->quota_max }} স্লট
-                                    </span>
-                                    @if($task->quota_remaining <= 0)
-                                        <span class="text-[8px] font-black text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-full uppercase tracking-widest">FULL</span>
+                                    @if($isUnlim)
+                                        <span class="text-[9px] font-black text-emerald-400 uppercase tracking-widest">∞ আনলিমিটেড</span>
+                                        <span class="text-[8px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full uppercase tracking-widest">∞ OPEN</span>
                                     @else
-                                        <span class="text-[8px] font-black text-emerald-400 uppercase tracking-widest">{{ $task->quota_remaining }} বাকি</span>
+                                        <span class="text-[9px] font-black {{ $pct >= 100 ? 'text-rose-400' : 'text-slate-400' }} uppercase tracking-widest">
+                                            {{ $used }} / {{ $task->quota_max }} স্লট
+                                        </span>
+                                        @if($task->quota_remaining <= 0)
+                                            <span class="text-[8px] font-black text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-full uppercase tracking-widest">FULL</span>
+                                        @else
+                                            <span class="text-[8px] font-black text-emerald-400 uppercase tracking-widest">{{ $task->quota_remaining }} বাকি</span>
+                                        @endif
                                     @endif
                                 </div>
                             </td>
@@ -176,19 +186,28 @@
 
                     <div class="p-3 bg-white/5 rounded-xl border border-white/5">
                         @php
-                            $used = $task->quota_max - $task->quota_remaining;
-                            $pct  = $task->quota_max > 0 ? min(100, ($used / $task->quota_max) * 100) : 0;
+                            $isUnlim  = $task->quota_max == 0 || $task->quota_remaining == -1;
+                            $used     = $isUnlim ? 0 : max(0, $task->quota_max - $task->quota_remaining);
+                            $pct      = (!$isUnlim && $task->quota_max > 0) ? min(100, ($used / $task->quota_max) * 100) : 0;
                             $barColor = $pct >= 100 ? 'bg-rose-500' : ($pct >= 75 ? 'bg-amber-500' : 'bg-emerald-500');
                         @endphp
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Slot Usage</span>
-                            <span class="text-[8px] font-black {{ $pct >= 100 ? 'text-rose-400' : 'text-slate-400' }} uppercase tracking-widest">
-                                {{ $used }} / {{ $task->quota_max }}
-                                @if($task->quota_remaining <= 0) (FULL) @endif
-                            </span>
+                            @if($isUnlim)
+                                <span class="text-[8px] font-black text-emerald-400 uppercase tracking-widest">∞ আনলিমিটেড</span>
+                            @else
+                                <span class="text-[8px] font-black {{ $pct >= 100 ? 'text-rose-400' : 'text-slate-400' }} uppercase tracking-widest">
+                                    {{ $used }} / {{ $task->quota_max }}
+                                    @if($task->quota_remaining <= 0) (FULL) @endif
+                                </span>
+                            @endif
                         </div>
                         <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                            <div class="h-full {{ $barColor }} transition-all" style="width: {{ $pct }}%"></div>
+                            @if($isUnlim)
+                                <div class="h-full bg-emerald-500 rounded-full" style="width:100%;opacity:0.3"></div>
+                            @else
+                                <div class="h-full {{ $barColor }} transition-all" style="width: {{ $pct }}%"></div>
+                            @endif
                         </div>
                     </div>
 

@@ -8,6 +8,25 @@ use Illuminate\Http\Request;
 
 class AdminTaskDomainController extends Controller
 {
+    /**
+     * Normalize a domain URL to bare hostname (e.g. "https://sub.domain.com/" -> "sub.domain.com")
+     */
+    private function normalizeDomain(string $domain): string
+    {
+        $domain = rtrim($domain, '/');
+        if (str_contains($domain, '://')) {
+            $parsed = parse_url($domain);
+            $host = $parsed['host'] ?? '';
+            if (!empty($host)) {
+                return strtolower(trim($host));
+            }
+        }
+        if (str_contains($domain, ':')) {
+            $domain = explode(':', $domain)[0];
+        }
+        return strtolower(trim($domain));
+    }
+
     public function index()
     {
         $domains = TaskDomain::latest()->paginate(20);
@@ -17,16 +36,16 @@ class AdminTaskDomainController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'domain' => 'required|url|unique:task_domains,domain',
+            'domain' => 'required|string|unique:task_domains,domain',
             'ad_code_1' => 'nullable|string',
             'ad_code_2' => 'nullable|string',
             'ad_code_3' => 'nullable|string',
-            'direct_link' => 'nullable|url',
+            'direct_link' => 'nullable|string',
             'is_active' => 'boolean'
         ]);
 
         TaskDomain::create([
-            'domain' => rtrim($request->domain, '/'),
+            'domain' => $this->normalizeDomain($request->domain),
             'ad_code_1' => $request->ad_code_1,
             'ad_code_2' => $request->ad_code_2,
             'ad_code_3' => $request->ad_code_3,
@@ -40,16 +59,16 @@ class AdminTaskDomainController extends Controller
     public function update(Request $request, TaskDomain $domain)
     {
         $request->validate([
-            'domain' => 'required|url|unique:task_domains,domain,' . $domain->id,
+            'domain' => 'required|string|unique:task_domains,domain,' . $domain->id,
             'ad_code_1' => 'nullable|string',
             'ad_code_2' => 'nullable|string',
             'ad_code_3' => 'nullable|string',
-            'direct_link' => 'nullable|url',
+            'direct_link' => 'nullable|string',
             'is_active' => 'boolean'
         ]);
 
         $domain->update([
-            'domain' => rtrim($request->domain, '/'),
+            'domain' => $this->normalizeDomain($request->domain),
             'ad_code_1' => $request->ad_code_1,
             'ad_code_2' => $request->ad_code_2,
             'ad_code_3' => $request->ad_code_3,

@@ -214,10 +214,10 @@
                     @csrf
                     <label class="block mb-3 text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">রোল পরিবর্তন করুন</label>
                     <div class="flex gap-3">
-                        <select name="role" class="flex-1 bg-white/5 border border-white/5 rounded-2xl p-4 text-white font-black text-xs focus:bg-white/10 appearance-none cursor-pointer">
-                            <option value="user"      {{ !$user->is_moderator && !$user->is_sub_admin ? 'selected' : '' }} class="bg-dark">👤 সাধারণ ইউজার</option>
-                            <option value="moderator" {{ $user->is_moderator ? 'selected' : '' }} class="bg-dark">🔰 মডারেটর (টাস্ক রিভিউ)</option>
-                            <option value="sub_admin" {{ $user->is_sub_admin ? 'selected' : '' }} class="bg-dark">⚡ সাব-অ্যাডমিন (কাস্টম পারমিশন)</option>
+                        <select name="role" class="flex-1 bg-[#1e2433] border border-white/5 rounded-2xl p-4 text-white font-black text-xs focus:bg-white/10 appearance-none cursor-pointer">
+                            <option value="user"      {{ !$user->is_moderator && !$user->is_sub_admin ? 'selected' : '' }} class="bg-[#1e2433] text-white">👤 সাধারণ ইউজার</option>
+                            <option value="moderator" {{ $user->is_moderator ? 'selected' : '' }} class="bg-[#1e2433] text-white">🔰 মডারেটর (টাস্ক রিভিউ)</option>
+                            <option value="sub_admin" {{ $user->is_sub_admin ? 'selected' : '' }} class="bg-[#1e2433] text-white">⚡ সাব-অ্যাডমিন (কাস্টম পারমিশন)</option>
                         </select>
                         <button type="submit" class="px-6 py-4 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all whitespace-nowrap">
                             আপডেট রোল

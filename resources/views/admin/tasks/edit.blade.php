@@ -286,31 +286,49 @@
                                 স্লট (Quota Max)</label>
                             <input type="number" id="quota_max" name="quota_max" value="{{ $task->quota_max }}"
                                 class="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-white font-black text-sm focus:bg-white/10 transition-all placeholder:text-slate-400"
-                                required>
+                                required min="0">
+                            <p class="text-[9px] text-slate-500 mt-2 font-bold uppercase tracking-widest">🔞 0 = আনলিমিটেড</p>
                             {{-- Quota Status Info --}}
                             @php
-                                $usedSlots = $task->quota_max - $task->quota_remaining;
-                                $slotPct = $task->quota_max > 0 ? round(($usedSlots / $task->quota_max) * 100) : 0;
+                                $isUnlimited = $task->quota_max == 0 || $task->quota_remaining == -1;
+                                $usedSlots   = $isUnlimited ? 0 : max(0, $task->quota_max - $task->quota_remaining);
+                                $slotPct     = (!$isUnlimited && $task->quota_max > 0)
+                                    ? round(($usedSlots / $task->quota_max) * 100)
+                                    : 0;
                             @endphp
                             <div class="mt-3 p-3 bg-white/5 rounded-xl border border-white/5">
                                 <div class="flex justify-between items-center mb-1.5">
                                     <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">স্লট
                                         অগ্রগতি</span>
-                                    <span
-                                        class="text-[9px] font-black {{ $task->quota_remaining <= 0 ? 'text-rose-400' : 'text-emerald-400' }} uppercase tracking-widest">
-                                        {{ $usedSlots }} ব্যবহৃত · {{ $task->quota_remaining }} বাকি ({{ $slotPct }}%)
-                                    </span>
+                                    @if($isUnlimited)
+                                        <span class="text-[9px] font-black text-emerald-400 uppercase tracking-widest">
+                                            ∞ আনলিমিটেড · {{ $usedSlots }} ব্যবহৃত
+                                        </span>
+                                    @else
+                                        <span
+                                            class="text-[9px] font-black {{ $task->quota_remaining <= 0 ? 'text-rose-400' : 'text-emerald-400' }} uppercase tracking-widest">
+                                            {{ $usedSlots }} ব্যবহৃত · {{ $task->quota_remaining }} বাকি ({{ $slotPct }}%)
+                                        </span>
+                                    @endif
                                 </div>
                                 <div class="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                    <div class="h-full {{ $task->quota_remaining <= 0 ? 'bg-rose-500' : ($slotPct >= 75 ? 'bg-amber-400' : 'bg-emerald-500') }} rounded-full"
-                                        style="width: {{ min(100, $slotPct) }}%"></div>
+                                    @if($isUnlimited)
+                                        <div class="h-full bg-emerald-500 rounded-full" style="width: 100%; opacity: 0.3;"></div>
+                                    @else
+                                        <div class="h-full {{ $task->quota_remaining <= 0 ? 'bg-rose-500' : ($slotPct >= 75 ? 'bg-amber-400' : 'bg-emerald-500') }} rounded-full"
+                                            style="width: {{ min(100, $slotPct) }}%"></div>
+                                    @endif
                                 </div>
                                 <p class="text-[8px] text-slate-500 mt-2 font-bold uppercase tracking-widest">
-                                    ⚠️ Quota Max বাড়ালে remaining স্বয়ংক্রিয়ভাবে বাড়বে। কমালে সীমাবদ্ধতা প্রযোজ্য
-                                    হবে।
+                                    @if($isUnlimited)
+                                        ∞ কোনো সীমা নেই — 0 থেকে পরিবর্তন করলে সীমা যোগ হবে
+                                    @else
+                                        ⚠️ Quota Max বাড়ালে remaining স্বয়ংক্রিয়ভাবে বাড়বে। কমালে সীমাবদ্ধতা প্রযোজ্য হবে।
+                                    @endif
                                 </p>
                             </div>
                         </div>
+
 
                         <div>
                             <label for="cooldown_hours"

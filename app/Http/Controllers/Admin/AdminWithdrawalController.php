@@ -70,7 +70,30 @@ class AdminWithdrawalController extends Controller
             ]);
         });
 
-        if (request()->ajax()) {
+        // ─── Direct Telegram Notification (Public/User Channel) ──────────
+        try {
+            $botToken = env('TELEGRAM_PUBLIC_BOT_TOKEN', env('TELEGRAM_BOT_TOKEN'));
+            $chatId = env('TELEGRAM_PUBLIC_CHAT_ID');
+
+            if ($botToken && $chatId) {
+                $user = $withdrawal->user;
+                $text = "✅ *Payment Successful*\n"
+                      . "👤 *User:* " . ($user->full_name ?? $user->name) . "\n"
+                      . "💵 *Amount:* ৳" . $withdrawal->amount_bdt . "\n"
+                      . "💳 *Method:* " . $withdrawal->method . "\n"
+                      . "📝 *TrxID:* " . $request->admin_feedback;
+
+                \Illuminate\Support\Facades\Http::post("https://api.telegram.org/bot" . $botToken . "/sendMessage", [
+                    'chat_id'    => $chatId,
+                    'text'       => $text,
+                    'parse_mode' => 'Markdown',
+                ]);
+            }
+        } catch (\Exception $e) {
+            // Silently ignore if Telegram fails
+        }
+
+        if ($request->ajax()) {
             return response()->json(['success' => true, 'message' => 'Withdrawal approved!']);
         }
 
@@ -124,7 +147,7 @@ class AdminWithdrawalController extends Controller
             ]);
         });
 
-        if (request()->ajax()) {
+        if ($request->ajax()) {
             return response()->json(['success' => true, 'message' => 'Rejected and refunded.']);
         }
 
@@ -181,7 +204,7 @@ class AdminWithdrawalController extends Controller
             ]);
         });
 
-        if (request()->ajax()) {
+        if ($request->ajax()) {
             return response()->json(['success' => true, 'message' => 'Confiscated!']);
         }
 

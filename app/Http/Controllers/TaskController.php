@@ -16,7 +16,11 @@ class TaskController extends Controller
 
         $tasks = Task::where('is_active', true)
             ->whereNotIn('type', ['timewall', 'adsterra'])
-            ->where('quota_remaining', '>', 0)
+            ->where(function ($q) {
+                // quota_remaining = -1 means unlimited (always show)
+                $q->where('quota_remaining', '=', -1)
+                  ->orWhere('quota_remaining', '>', 0);
+            })
             ->whereDoesntHave('submissions', function ($query) use ($user) {
                 $query->where('user_id', $user->id)
                       ->whereIn('status', ['pending', 'approved'])
@@ -35,8 +39,8 @@ class TaskController extends Controller
     {
         abort_if(! $task->is_active || in_array($task->type, ['timewall', 'adsterra']), 404);
 
-        // Block access if quota is full
-        if ($task->quota_remaining <= 0) {
+        // Block access if quota is full (-1 = unlimited, always allow)
+        if ($task->quota_remaining !== -1 && $task->quota_remaining <= 0) {
             return redirect()->route('tasks.index')
                 ->with('info', '⛔ এই টাস্কের স্লট পূর্ণ হয়ে গেছে। অন্য একটি টাস্ক বেছে নিন।');
         }
@@ -104,11 +108,18 @@ class TaskController extends Controller
 
         // Build dynamic validation rules based on task's required proofs
         $rules = [];
+        $codeCount  = max(1, (int) ($task->secret_code_count ?? 1));
+        $imageCount = max(1, (int) ($task->image_proof_count ?? 1));
+
         if ($task->requires_text_proof) {
-            $rules['proof_text'] = 'required|string|min:3|max:500';
+            for ($i = 0; $i < $codeCount; $i++) {
+                $rules["proof_codes.{$i}"] = 'required|string|min:3|max:64';
+            }
         }
         if ($task->requires_image_proof) {
-            $rules['proof_image'] = 'required|image|mimes:jpeg,png,jpg,gif,webp|max:4096';
+            for ($i = 0; $i < $imageCount; $i++) {
+                $rules["proof_images.{$i}"] = 'required|image|mimes:jpeg,png,jpg,gif,webp|max:4096';
+            }
         }
         if ($task->requires_email_proof) {
             $rules['proof_email']    = 'required|email|max:255';
@@ -117,42 +128,55 @@ class TaskController extends Controller
 
         $request->validate($rules);
 
-        // ── Auto-Verify Secret Code (Static or Dynamic) ──────────────────────
+        // ── Secret Code Verification (Multiple) ──────────────────────────────
         if ($task->requires_text_proof) {
-            $submittedCode = trim($request->proof_text);
-            $isValid = false;
+            $submittedCodes = $request->input('proof_codes', []);
+            $secretSalt     = env('TASK_SECRET_SALT', 'MicroJobV1Secret!');
+            $storedCodes    = $task->secret_codes ?? [];
 
-            if ($task->secret_code) {
-                // Static code verification (YouTube/Facebook video tasks)
-                $isValid = ($submittedCode === $task->secret_code);
-            } else {
-                // Dynamic code verification
-                $secretSalt = env('TASK_SECRET_SALT', 'MicroJobV1Secret!');
-                
-                // 1. Check User-Specific Code (Direct links with uid/tid)
-                $expectedCode = substr(md5($user->id . $task->id . $secretSalt), 0, 8);
-                
-                // 2. Check Daily SEO Code (Google search where uid/tid are stripped)
-                $seoFallbackCode = substr(md5(date('Y-m-d') . $secretSalt), 0, 8);
-                
-                if ($submittedCode === $expectedCode || $submittedCode === $seoFallbackCode) {
-                    $isValid = true;
+            foreach ($submittedCodes as $idx => $submittedCode) {
+                $submittedCode = trim($submittedCode);
+                $isValid = false;
+
+                // Check against stored static code for this slot
+                if (isset($storedCodes[$idx]) && $storedCodes[$idx] !== '') {
+                    $isValid = ($submittedCode === $storedCodes[$idx]);
+                } elseif ($task->secret_code) {
+                    // Fallback: single static code
+                    $isValid = ($submittedCode === $task->secret_code);
+                } else {
+                    // Dynamic code
+                    $expectedCode    = substr(md5($user->id . $task->id . $secretSalt), 0, 8);
+                    $seoFallbackCode = substr(md5(date('Y-m-d') . $secretSalt), 0, 8);
+                    $isValid = ($submittedCode === $expectedCode || $submittedCode === $seoFallbackCode);
                 }
-            }
-            
-            if (!$isValid) {
-                return back()->withInput()->with('error', '❌ ভুল সিক্রেট কোড! ব্লগ সাইট থেকে সঠিক কোডটি কপি করে পেস্ট করুন। আবার চেষ্টা করুন।');
+
+                if (!$isValid) {
+                    $num = $idx + 1;
+                    return back()->withInput()->with('error', "❌ সিক্রেট কোড #{$num} ভুল! সঠিক কোডটি কপি করে পেস্ট করুন।");
+                }
             }
         }
 
-        // ── Image Hash (compute before transaction) ──────────────────────────
+        // ── Multiple Images (compute hashes before transaction) ───────────────
+        $imagePaths = [];
+        $imageHashes = [];
+        // Legacy single-image fields (kept for backward compat)
         $imagePath = null;
         $imageHash = null;
 
-        if ($request->hasFile('proof_image')) {
-            $image = $request->file('proof_image');
-            $imageHash = md5_file($image->getRealPath());
-            $imagePath = $image->store('proofs', 'public');
+        if ($task->requires_image_proof && $request->hasFile('proof_images')) {
+            foreach ($request->file('proof_images') as $image) {
+                $hash = md5_file($image->getRealPath());
+                $path = $image->store('proofs', 'public');
+                $imagePaths[]  = $path;
+                $imageHashes[] = $hash;
+            }
+            // Legacy compat: first image
+            if (!empty($imagePaths)) {
+                $imagePath = $imagePaths[0];
+                $imageHash = $imageHashes[0];
+            }
         }
 
         // ═══ CRITICAL SECTION: DB Transaction + Row Lock ═══════════════════
@@ -165,13 +189,15 @@ class TaskController extends Controller
         // ════════════════════════════════════════════════════════════════════
         try {
             \Illuminate\Support\Facades\DB::transaction(function () use (
-                $task, $user, $request, $imagePath, $imageHash, &$status, &$successMessage
+                $task, $user, $request, $imagePath, $imageHash,
+                $imagePaths, $imageHashes, &$status, &$successMessage
             ) {
                 // Lock the task row — blocks other concurrent submits for THIS task
                 $lockedTask = Task::where('id', $task->id)->lockForUpdate()->firstOrFail();
 
                 // ── Quota Check (BEFORE submission, under lock) ─────────────
-                if ($lockedTask->quota_remaining <= 0) {
+                // quota_remaining = -1 means UNLIMITED (no limit)
+                if ($lockedTask->quota_remaining !== -1 && $lockedTask->quota_remaining <= 0) {
                     throw new \RuntimeException('দুঃখিত! এই টাস্কের কোটা শেষ হয়ে গেছে। অন্য টাস্ক চেষ্টা করুন।');
                 }
 
@@ -193,25 +219,30 @@ class TaskController extends Controller
                     throw new \RuntimeException($msg);
                 }
 
-                // ── Anti-Cheat: Image Hash Duplicate Check (under lock) ────
-                if ($imageHash) {
-                    $isDuplicate = Submission::where('proof_hash', $imageHash)->exists();
-                    if ($isDuplicate) {
-                        throw new \RuntimeException('❌ এই স্ক্রিনশটটি আগে কেউ ব্যবহার করেছে। নতুন স্ক্রিনশট আপলোড করুন। (Duplicate image detected!)');
+                // ── Anti-Cheat: All Image Hash Duplicate Checks (under lock) ──
+                foreach ($imageHashes as $hash) {
+                    if (Submission::where('proof_hash', $hash)->orWhereJsonContains('proof_hashes', $hash)->exists()) {
+                        throw new \RuntimeException('❌ একটি স্ক্রিনশট আগে কেউ ব্যবহার করেছে। নতুন স্ক্রিনশট আপলোড করুন। (Duplicate image detected!)');
                     }
                 }
 
                 // ── Auto-Approve Logic ──────────────────────────────────────
+                // শুধু Secret Code একা থাকলেই auto-approve হবে।
+                // Image proof বা Email proof থাকলে admin review-এ যাবে।
                 $status = 'pending';
                 $successMessage = '✅ টাস্কটি সাবমিট হয়েছে! পুরস্কার: ' . number_format($task->points) . ' PTS। আমাদের টিম ২৪ ঘণ্টার মধ্যে রিভিউ করবে।';
 
-                if ($task->requires_text_proof) {
+                $onlySecretCode = $task->requires_text_proof
+                    && !$task->requires_image_proof
+                    && !$task->requires_email_proof;
+
+                if ($onlySecretCode) {
                     $status = 'approved';
 
                     $pointConversionRate = (int) \App\Models\Setting::get('point_conversion_rate', 100);
                     $totalPoints    = (int) $task->points;
-                    $adminProfit    = (int) ($task->admin_profit ?? 0);     // প্ল্যাটফর্ম রিজার্ভ কাটবে
-                    $userPoints     = max(0, $totalPoints - $adminProfit);  // ইউসার পাবে
+                    $adminProfit    = (int) ($task->admin_profit ?? 0);
+                    $userPoints     = max(0, $totalPoints - $adminProfit);
                     $adminProfitBdt = $adminProfit / $pointConversionRate;
                     $userRewardBdt  = $userPoints / $pointConversionRate;
 
@@ -248,19 +279,28 @@ class TaskController extends Controller
                 }
 
                 // ── Create Submission ───────────────────────────────────────
+                $submittedCodes = $request->input('proof_codes', []);
                 Submission::create([
                     'task_id'        => $task->id,
                     'user_id'        => $user->id,
                     'status'         => $status,
-                    'proof_text'     => $request->proof_text,
+                    // Legacy single-proof (backward compat)
+                    'proof_text'     => !empty($submittedCodes) ? implode(' | ', $submittedCodes) : null,
                     'proof_email'    => $request->proof_email,
                     'proof_password' => $request->proof_password,
                     'proof_image'    => $imagePath,
                     'proof_hash'     => $imageHash,
+                    // New multi-proof JSON
+                    'proof_texts'    => !empty($submittedCodes)  ? $submittedCodes  : null,
+                    'proof_images'   => !empty($imagePaths)      ? $imagePaths      : null,
+                    'proof_hashes'   => !empty($imageHashes)     ? $imageHashes     : null,
                 ]);
 
                 // ── Decrement Quota (atomic under lock) ────────────────────
-                $lockedTask->decrement('quota_remaining');
+                // -1 = unlimited, do not decrement
+                if ($lockedTask->quota_remaining !== -1) {
+                    $lockedTask->decrement('quota_remaining');
+                }
             });
 
             return redirect()->route('tasks.index')

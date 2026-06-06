@@ -42,13 +42,10 @@
                                 <label
                                     class="block mb-3 text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Encryption</label>
                                 <select name="mail_encryption"
-                                    class="w-full bg-dark border border-white/10 rounded-[20px] p-4 text-white font-bold text-sm focus:bg-indigo-500/10 focus:border-indigo-500 transition-all outline-none appearance-none">
-                                    <option value="tls" {{ $settings['mail_encryption'] == 'tls' ? 'selected' : '' }}>TLS
-                                    </option>
-                                    <option value="ssl" {{ $settings['mail_encryption'] == 'ssl' ? 'selected' : '' }}>SSL
-                                    </option>
-                                    <option value="null" {{ $settings['mail_encryption'] == 'null' ? 'selected' : '' }}>
-                                        None</option>
+                                    class="w-full bg-[#1e2433] border border-white/10 rounded-[20px] p-4 text-white font-bold text-sm focus:bg-indigo-500/10 focus:border-indigo-500 transition-all outline-none appearance-none">
+                                    <option value="tls" {{ $settings['mail_encryption'] == 'tls' ? 'selected' : '' }} class="bg-[#1e2433] text-white">TLS</option>
+                                    <option value="ssl" {{ $settings['mail_encryption'] == 'ssl' ? 'selected' : '' }} class="bg-[#1e2433] text-white">SSL</option>
+                                    <option value="null" {{ $settings['mail_encryption'] == 'null' ? 'selected' : '' }} class="bg-[#1e2433] text-white">None</option>
                                 </select>
                             </div>
                         </div>
@@ -59,6 +56,14 @@
                                     class="block mb-3 text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Username</label>
                                 <input type="text" name="mail_username" value="{{ $settings['mail_username'] }}"
                                     placeholder="API Key / User"
+                                    class="w-full bg-white/5 border border-white/10 rounded-[20px] p-4 text-white font-bold text-sm focus:bg-indigo-500/10 focus:border-indigo-500 transition-all outline-none">
+                            </div>
+                            <div>
+                                <label
+                                    class="block mb-3 text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Password</label>
+                                <input type="password" name="mail_password"
+                                    value="{{ $settings['mail_password'] ?? '' }}"
+                                    placeholder="SMTP Password / API Secret"
                                     class="w-full bg-white/5 border border-white/10 rounded-[20px] p-4 text-white font-bold text-sm focus:bg-indigo-500/10 focus:border-indigo-500 transition-all outline-none">
                             </div>
                             <div>

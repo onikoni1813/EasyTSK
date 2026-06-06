@@ -280,7 +280,7 @@
             @endphp
 
             <!-- Mini Menus -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4">
                 <!-- Social Tasks -->
                 <a href="{{ $socialActive ? route('tasks.index') : route('module.maintenance') }}"
                     class="group p-6 bg-dark-card border border-white/5 rounded-3xl text-center group transition-all duration-300 shadow-sm relative overflow-hidden {{ $socialActive ? 'hover:bg-primary-600 hover:border-primary-600' : 'opacity-50 grayscale' }}">
@@ -301,73 +301,14 @@
                         class="block text-xs font-black text-slate-300 uppercase tracking-tighter group-hover:text-white">টাস্ক</span>
                 </a>
 
-                <!-- TimeWall -->
-                <a href="{{ $timewallActive ? route('timewall.index') : route('module.maintenance') }}"
-                    class="group p-6 bg-dark-card border border-white/5 rounded-3xl text-center transition-all duration-300 shadow-sm relative overflow-hidden {{ $timewallActive ? 'hover:bg-orange-600 hover:border-orange-600' : 'opacity-50 grayscale' }}">
-                    @if(!$timewallActive)
-                        <div
-                            class="absolute top-3 right-0 px-3 py-1 bg-rose-600 text-[8px] font-black text-white rounded-l-lg z-10">
-                            OFF</div>
-                    @endif
-                    <div
-                        class="w-12 h-12 {{ $timewallActive ? 'bg-orange-500/10 text-orange-500' : 'bg-white/5 text-slate-500' }} rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:bg-white/20 group-hover:text-white transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                        </svg>
-                    </div>
-                    <span
-                        class="block text-xs font-black text-slate-300 uppercase tracking-tighter group-hover:text-white">টাইমওয়াল</span>
-                </a>
-
-                <!-- Adsterra -->
-                <a href="{{ $adsterraActive ? route('adsterra.index') : route('module.maintenance') }}"
-                    class="group p-6 bg-dark-card border border-white/5 rounded-3xl text-center transition-all duration-300 shadow-sm relative overflow-hidden {{ $adsterraActive ? 'hover:bg-emerald-600 hover:border-emerald-600' : 'opacity-50 grayscale' }}">
-                    @if(!$adsterraActive)
-                        <div
-                            class="absolute top-3 right-0 px-3 py-1 bg-rose-600 text-[8px] font-black text-white rounded-l-lg z-10">
-                            OFF</div>
-                    @endif
-                    <div
-                        class="w-12 h-12 {{ $adsterraActive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-white/5 text-slate-500' }} rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:bg-white/20 group-hover:text-white transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z">
-                            </path>
-                        </svg>
-                    </div>
-                    <span
-                        class="block text-xs font-black text-slate-300 uppercase tracking-tighter group-hover:text-white">অ্যাড
-                        দেখা</span>
-                </a>
-
-                <!-- Monlix -->
-                <a href="{{ $monlixActive ? route('monlix.index') : route('module.maintenance') }}"
-                    class="group p-6 bg-dark-card border border-white/5 rounded-3xl text-center transition-all duration-300 shadow-sm relative overflow-hidden {{ $monlixActive ? 'hover:bg-rose-600 hover:border-rose-600' : 'opacity-50 grayscale' }}">
-                    @if(!$monlixActive)
-                        <div
-                            class="absolute top-3 right-0 px-3 py-1 bg-rose-600 text-[8px] font-black text-white rounded-l-lg z-10">
-                            OFF</div>
-                    @endif
-                    <div
-                        class="w-12 h-12 {{ $monlixActive ? 'bg-rose-500/10 text-rose-500' : 'bg-white/5 text-slate-500' }} rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:bg-white/20 group-hover:text-white transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                        </svg>
-                    </div>
-                    <span
-                        class="block text-xs font-black text-slate-300 uppercase tracking-tighter group-hover:text-white">বোনাস
-                        ওয়াল</span>
-                </a>
                 @if(empty($user->facebook_link) || empty($user->telegram_username))
                     <a href="javascript:void(0)"
                         onclick="alert('উইথড্র করার আগে দয়া করে প্রোফাইল সেটিংসে গিয়ে আপনার আসল Facebook ID লিংক এবং Telegram ইউজারনেম সেভ করুন।')"
-                        class="group p-6 bg-dark-card border border-white/5 rounded-3xl text-center hover:bg-rose-500 hover:border-rose-500 transition-all duration-300 shadow-sm">
+                        class="group p-6 bg-dark-card border border-white/5 rounded-3xl text-center hover:bg-rose-500 hover:border-rose-500 transition-all duration-300 shadow-sm relative overflow-hidden">
                 @else
-                        <a href="{{ route('withdrawals.index') }}"
-                            class="group p-6 bg-dark-card border border-white/5 rounded-3xl text-center hover:bg-primary-600 hover:border-primary-600 transition-all duration-300 shadow-sm">
-                    @endif
+                    <a href="{{ route('withdrawals.index') }}"
+                        class="group p-6 bg-dark-card border border-white/5 rounded-3xl text-center hover:bg-primary-600 hover:border-primary-600 transition-all duration-300 shadow-sm relative overflow-hidden">
+                @endif
                         <div
                             class="w-12 h-12 bg-primary-500/10 rounded-2xl flex items-center justify-center text-primary-500 mx-auto mb-3 group-hover:bg-white/20 group-hover:text-white transition-colors">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -379,18 +320,18 @@
                         <span
                             class="block text-xs font-black text-slate-300 uppercase tracking-tighter group-hover:text-white">ওয়ালেট</span>
                     </a>
-                    <a href="{{ route('activity.index') }}"
-                        class="group p-6 bg-dark-card border border-white/5 rounded-3xl text-center hover:bg-slate-700 hover:border-slate-600 transition-all duration-300 shadow-sm">
-                        <div
-                            class="w-12 h-12 bg-slate-500/10 rounded-2xl flex items-center justify-center text-slate-400 mx-auto mb-3 group-hover:bg-white/20 group-hover:text-white transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                        <span
-                            class="block text-xs font-black text-slate-300 uppercase tracking-tighter group-hover:text-white">হিস্টরি</span>
-                    </a>
+                <a href="{{ route('activity.index') }}"
+                    class="group p-6 bg-dark-card border border-white/5 rounded-3xl text-center hover:bg-slate-700 hover:border-slate-600 transition-all duration-300 shadow-sm relative overflow-hidden">
+                    <div
+                        class="w-12 h-12 bg-slate-500/10 rounded-2xl flex items-center justify-center text-slate-400 mx-auto mb-3 group-hover:bg-white/20 group-hover:text-white transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <span
+                        class="block text-xs font-black text-slate-300 uppercase tracking-tighter group-hover:text-white">হিস্টরি</span>
+                </a>
             </div>
         </div>
 

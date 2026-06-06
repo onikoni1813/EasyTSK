@@ -66,6 +66,39 @@
                 @endif
             </a>
         @endif
+
+        {{-- Dynamic Offerwalls --}}
+        @foreach($dynamicOfferwalls ?? \App\Models\Offerwall::active()->ordered()->get() as $ow)
+            @php
+                $colorMap = [
+                    'indigo'  => 'from-indigo-600 to-indigo-500 shadow-indigo-900/40',
+                    'emerald' => 'from-emerald-600 to-emerald-500 shadow-emerald-900/40',
+                    'amber'   => 'from-amber-600 to-amber-500 shadow-amber-900/40',
+                    'rose'    => 'from-rose-600 to-rose-500 shadow-rose-900/40',
+                    'sky'     => 'from-sky-600 to-sky-500 shadow-sky-900/40',
+                    'violet'  => 'from-violet-600 to-violet-500 shadow-violet-900/40',
+                    'teal'    => 'from-teal-600 to-teal-500 shadow-teal-900/40',
+                    'orange'  => 'from-orange-600 to-orange-500 shadow-orange-900/40',
+                    'pink'    => 'from-pink-600 to-pink-500 shadow-pink-900/40',
+                    'cyan'    => 'from-cyan-600 to-cyan-500 shadow-cyan-900/40',
+                ];
+                $isCurrentOw = isset($offerwall) && $offerwall->id === $ow->id;
+                $activeClass = $isCurrentOw
+                    ? 'bg-gradient-to-r '.($colorMap[$ow->color] ?? $colorMap['indigo']).' text-white shadow-lg scale-105 active:scale-95'
+                    : 'text-slate-500 hover:bg-white/5 hover:text-slate-300';
+            @endphp
+            <a href="{{ route('offerwalls.show', $ow) }}"
+                class="px-7 py-3 text-[11px] font-black uppercase rounded-[18px] transition-all flex items-center gap-2 group {{ $activeClass }}">
+                <span class="text-sm">{{ $ow->icon_emoji }}</span> {{ $ow->display_name }}
+                @if($ow->requires_task_lock && $hasAvailableRegularTasks)
+                    <svg class="w-3 h-3 text-rose-500 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                        </path>
+                    </svg>
+                @endif
+            </a>
+        @endforeach
     </div>
 
     <div class="p-0 bg-dark-card border border-white/5 rounded-[40px] shadow-sm overflow-hidden">

@@ -64,35 +64,54 @@
                                     class="font-black text-primary-500 tracking-widest text-sm italic">{{ number_format(optional($submission->task)->points ?? 0) }}
                                     PTS</span>
                             </td>
-                            <td class="px-8 py-6 text-center">
-                                <div class="flex items-center justify-center gap-2">
-                                    @if($submission->proof_image)
-                                        <button data-url="{{ Storage::url($submission->proof_image) }}"
-                                            onclick="showProofModal(this.dataset.url)"
-                                            class="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-slate-400 hover:text-white hover:bg-primary-600 hover:border-primary-500 transition-all uppercase tracking-widest">
-                                            View Image
-                                        </button>
+                            <td class="px-6 py-5 text-center">
+                                <div class="flex flex-col items-center gap-1.5 max-w-[220px] mx-auto">
+
+                                    {{-- সিক্রেট কোড (multiple JSON array) --}}
+                                    @php
+                                        $codes = $submission->proof_texts ?? ($submission->proof_text ? [$submission->proof_text] : []);
+                                        $images = $submission->proof_images ?? ($submission->proof_image ? [$submission->proof_image] : []);
+                                    @endphp
+
+                                    @if(count($codes) > 0)
+                                        <div class="w-full">
+                                            @foreach($codes as $ci => $code)
+                                                <button onclick="showCodeModal('{{ e($code) }}', {{ $ci + 1 }}, {{ count($codes) }})"
+                                                    class="w-full mb-1 px-3 py-1.5 bg-violet-500/10 border border-violet-500/20 rounded-lg text-[9px] font-black text-violet-400 hover:bg-violet-500 hover:text-white transition-all uppercase tracking-widest text-left truncate">
+                                                    🔑 {{ count($codes) > 1 ? 'Code #'.($ci+1).': ' : '' }}{{ Str::limit($code, 18) }}
+                                                </button>
+                                            @endforeach
+                                        </div>
                                     @endif
-                                    @if($submission->proof_text)
-                                        <button data-text="{{ e($submission->proof_text) }}"
-                                            onclick="alert('Proof Text: ' + this.dataset.text)"
-                                            class="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-slate-400 hover:text-white hover:bg-indigo-600 hover:border-indigo-500 transition-all uppercase tracking-widest">
-                                            View Code
-                                        </button>
+
+                                    @if(count($images) > 0)
+                                        <div class="flex gap-1 flex-wrap justify-center">
+                                            @foreach($images as $ii => $img)
+                                                <button data-url="{{ Storage::url($img) }}"
+                                                    onclick="showProofModal(this.dataset.url)"
+                                                    class="px-3 py-1.5 bg-primary-500/10 border border-primary-500/20 rounded-lg text-[9px] font-black text-primary-400 hover:bg-primary-500 hover:text-white transition-all uppercase tracking-widest">
+                                                    📸 {{ count($images) > 1 ? 'IMG #'.($ii+1) : 'View IMG' }}
+                                                </button>
+                                            @endforeach
+                                        </div>
                                     @endif
+
                                     @if($submission->proof_email)
-                                        <button
-                                            onclick="alert('Email: {{ e($submission->proof_email) }}')"
-                                            class="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-slate-400 hover:text-white hover:bg-emerald-600 hover:border-emerald-500 transition-all uppercase tracking-widest">
-                                            📧 {{ $submission->proof_email }}
-                                        </button>
+                                        <div class="w-full flex gap-1">
+                                            <span class="flex-1 px-2 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-[9px] font-black text-emerald-400 uppercase tracking-widest truncate">
+                                                📧 {{ $submission->proof_email }}
+                                            </span>
+                                            @if($submission->proof_password)
+                                                <button onclick="showPassModal('{{ e($submission->proof_email) }}', '{{ e($submission->proof_password) }}')"
+                                                    class="px-2 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg text-[9px] font-black text-amber-400 hover:bg-amber-500 hover:text-white transition-all">
+                                                    🔐
+                                                </button>
+                                            @endif
+                                        </div>
                                     @endif
-                                    @if($submission->proof_password)
-                                        <button
-                                            onclick="alert('Password: {{ e($submission->proof_password) }}')"
-                                            class="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-slate-400 hover:text-white hover:bg-violet-600 hover:border-violet-500 transition-all uppercase tracking-widest">
-                                            🔐 Pass দেখুন
-                                        </button>
+
+                                    @if(!count($codes) && !count($images) && !$submission->proof_email)
+                                        <span class="text-[9px] text-slate-600 uppercase tracking-widest italic">No Evidence</span>
                                     @endif
                                 </div>
                             </td>
@@ -167,37 +186,46 @@
                         </div>
                     </div>
 
-                    <!-- Proof Box -->
-                    <div class="bg-white/5 border border-white/5 rounded-2xl p-5">
-                        <div class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Operational
-                            Evidence</div>
-                        <div class="flex flex-wrap gap-2">
-                            @if($submission->proof_image)
-                                <button data-url="{{ Storage::url($submission->proof_image) }}"
-                                    onclick="showProofModal(this.dataset.url)"
-                                    class="flex-1 min-w-[120px] px-4 py-3 bg-primary-500/10 border border-primary-500/20 text-primary-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-500 hover:text-white transition-all">
-                                    View Image
-                                </button>
-                            @endif
-                            @if($submission->proof_text)
-                                <button data-text="{{ e($submission->proof_text) }}"
-                                    onclick="alert('Proof Text: ' + this.dataset.text)"
-                                    class="flex-1 min-w-[120px] px-4 py-3 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all">
-                                    View Code
-                                </button>
-                            @endif
-                            @if($submission->proof_email)
-                                <div class="flex-1 min-w-[120px] px-4 py-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-[10px] font-black uppercase tracking-widest">
+                    {{-- Proof Box --}}
+                    <div class="bg-white/5 border border-white/5 rounded-2xl p-4 space-y-2">
+                        <div class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">Operational Evidence</div>
+                        @php
+                            $codes  = $submission->proof_texts  ?? ($submission->proof_text  ? [$submission->proof_text]  : []);
+                            $images = $submission->proof_images ?? ($submission->proof_image ? [$submission->proof_image] : []);
+                        @endphp
+
+                        @foreach($codes as $ci => $code)
+                            <button onclick="showCodeModal('{{ e($code) }}', {{ $ci + 1 }}, {{ count($codes) }})"
+                                class="w-full px-4 py-3 bg-violet-500/10 border border-violet-500/20 text-violet-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-violet-500 hover:text-white transition-all text-left truncate">
+                                🔑 {{ count($codes) > 1 ? 'Code #'.($ci+1).': ' : 'Secret Code: ' }}{{ Str::limit($code, 22) }}
+                            </button>
+                        @endforeach
+
+                        @foreach($images as $ii => $img)
+                            <button data-url="{{ Storage::url($img) }}"
+                                onclick="showProofModal(this.dataset.url)"
+                                class="w-full px-4 py-3 bg-primary-500/10 border border-primary-500/20 text-primary-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-500 hover:text-white transition-all">
+                                📸 {{ count($images) > 1 ? 'Screenshot #'.($ii+1) : 'Screenshot' }} দেখুন
+                            </button>
+                        @endforeach
+
+                        @if($submission->proof_email)
+                            <div class="flex gap-2 items-center">
+                                <div class="flex-1 px-4 py-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-[10px] font-black uppercase tracking-widest truncate">
                                     📧 {{ $submission->proof_email }}
                                 </div>
-                            @endif
-                            @if($submission->proof_password)
-                                <button onclick="alert('Password: {{ e($submission->proof_password) }}')"
-                                    class="flex-1 min-w-[120px] px-4 py-3 bg-violet-500/10 border border-violet-500/20 text-violet-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-violet-500 hover:text-white transition-all">
-                                    🔐 Pass দেখুন
-                                </button>
-                            @endif
-                        </div>
+                                @if($submission->proof_password)
+                                    <button onclick="showPassModal('{{ e($submission->proof_email) }}', '{{ e($submission->proof_password) }}')"
+                                        class="px-4 py-3 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-500 hover:text-white transition-all">
+                                        🔐 Pass
+                                    </button>
+                                @endif
+                            </div>
+                        @endif
+
+                        @if(!count($codes) && !count($images) && !$submission->proof_email)
+                            <p class="text-center text-[9px] text-slate-600 uppercase tracking-widest italic py-2">No evidence submitted</p>
+                        @endif
                     </div>
 
                     <!-- Action Hub -->
@@ -290,19 +318,82 @@
         </div>
     </div>
 
+    {{-- ── Code Modal ─────────────────────────────────────────────────── --}}
+    <div id="codeModal" class="hidden fixed inset-0 z-[102] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-sm p-8 text-center">
+            <div class="w-14 h-14 bg-violet-500/10 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5">🔑</div>
+            <h3 id="codeModalTitle" class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">সিক্রেট কোড</h3>
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-5 mb-5">
+                <p id="codeModalText" class="font-mono font-black text-white text-lg tracking-widest break-all"></p>
+            </div>
+            <div class="flex gap-3">
+                <button id="copyCodeBtn" class="flex-1 py-3 bg-violet-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-violet-500 transition-all">📋 Copy</button>
+                <button id="closeCodeModal" class="flex-1 py-3 bg-white/5 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-white/10 transition-all">Close</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ── Pass Modal ─────────────────────────────────────────────────── --}}
+    <div id="passModal" class="hidden fixed inset-0 z-[102] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-sm p-8 text-center">
+            <div class="w-14 h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5">🔐</div>
+            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">Gmail Credentials</h3>
+            <div class="space-y-3 mb-6">
+                <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-4 text-left">
+                    <p class="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1">📧 Email</p>
+                    <p id="passModalEmail" class="font-mono font-bold text-white text-sm break-all"></p>
+                </div>
+                <div class="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 text-left">
+                    <p class="text-[9px] font-black text-amber-400 uppercase tracking-widest mb-1">🔑 Password</p>
+                    <p id="passModalPass" class="font-mono font-bold text-white text-sm break-all"></p>
+                </div>
+            </div>
+            <button id="closePassModal" class="w-full py-3 bg-white/5 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-white/10 transition-all">Close</button>
+        </div>
+    </div>
+
     @push('scripts')
+
         <script>
             function showRejectModal(id) {
-                window.dispatchEvent(new CustomEvent('open-reject', {
-                    detail: id
-                }));
+                window.dispatchEvent(new CustomEvent('open-reject', { detail: id }));
             }
 
             function showProofModal(src) {
-                window.dispatchEvent(new CustomEvent('open-proof', {
-                    detail: src
-                }));
+                window.dispatchEvent(new CustomEvent('open-proof', { detail: src }));
             }
+
+            // ── Code Modal ────────────────────────────────────────────────
+            function showCodeModal(code, index, total) {
+                const title = total > 1 ? `সিক্রেট কোড #${index} / ${total}` : 'সিক্রেট কোড';
+                const modal = document.getElementById('codeModal');
+                document.getElementById('codeModalTitle').textContent = title;
+                document.getElementById('codeModalText').textContent = code;
+                modal.classList.remove('hidden');
+            }
+            document.getElementById('closeCodeModal').addEventListener('click', () => {
+                document.getElementById('codeModal').classList.add('hidden');
+            });
+            document.getElementById('copyCodeBtn').addEventListener('click', () => {
+                const text = document.getElementById('codeModalText').textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    const btn = document.getElementById('copyCodeBtn');
+                    btn.textContent = '✅ Copied!';
+                    setTimeout(() => btn.textContent = '📋 Copy', 1500);
+                });
+            });
+
+            // ── Pass Modal ────────────────────────────────────────────────
+            function showPassModal(email, pass) {
+                const modal = document.getElementById('passModal');
+                document.getElementById('passModalEmail').textContent = email;
+                document.getElementById('passModalPass').textContent = pass;
+                modal.classList.remove('hidden');
+            }
+            document.getElementById('closePassModal').addEventListener('click', () => {
+                document.getElementById('passModal').classList.add('hidden');
+            });
+
         </script>
     @endpush
 </x-admin-layout>

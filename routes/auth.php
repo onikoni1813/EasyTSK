@@ -16,19 +16,19 @@ Route::middleware('guest')->group(function () {
         ->name('register');
 
     Route::post('register', [RegisteredUserController::class, 'store'])
-        ->middleware('throttle:5,10'); // Max 5 registrations per 10 min per IP
+        ->middleware('throttle:20,10'); // Max 20 registrations per 10 min per IP
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 
     Route::post('login', [AuthenticatedSessionController::class, 'store'])
-        ->middleware('throttle:10,5'); // Max 10 login attempts per 5 min per IP
+        ->middleware('throttle:30,5'); // Max 30 login attempts per 5 min per IP
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
 
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
-        ->middleware('throttle:3,10')  // Max 3 reset attempts per 10 min
+        ->middleware('throttle:10,10')  // Max 10 reset attempts per 10 min
         ->name('password.email');
 
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])

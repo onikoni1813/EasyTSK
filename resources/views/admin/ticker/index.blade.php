@@ -95,16 +95,16 @@
                                 <td class="px-8 py-5">
                                     <div class="flex items-center gap-4">
                                         <div class="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center font-black text-[9px] text-primary-500 group-hover:scale-110 transition-transform">
-                                            {{ substr($w->user->name, 0, 1) }}
+                                            {{ strtoupper(substr(optional($w->user)->name ?? 'D', 0, 1)) }}
                                         </div>
                                         <div>
-                                            <div class="text-[11px] font-black text-white uppercase tracking-tight">{{ $w->user->masked_name }}</div>
+                                            <div class="text-[11px] font-black text-white uppercase tracking-tight">{{ optional($w->user)->masked_name ?? 'Deleted User' }}</div>
                                             <div class="text-[8px] font-bold text-slate-400 uppercase tracking-tighter mt-0.5">{{ $w->updated_at->diffForHumans() }}</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-8 py-5">
-                                    <div class="text-[10px] font-black text-slate-400 font-mono italic">{{ $w->bkash_number ?? $w->nagad_number ?? 'EXTERNAL_NODE' }}</div>
+                                    <div class="text-[10px] font-black text-slate-400 font-mono italic">{{ optional($w->user)->bkash_number ?? optional($w->user)->nagad_number ?? $w->account ?? 'EXTERNAL_NODE' }}</div>
                                 </td>
                                 <td class="px-8 py-5 text-center">
                                     <span class="px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black text-slate-400 uppercase tracking-widest group-hover:text-primary-500 transition-colors">

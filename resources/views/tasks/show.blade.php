@@ -257,18 +257,26 @@
 
                     <div class="space-y-8">
                         @if($task->requires_text_proof)
-                            <div>
-                                <label class="block mb-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">📝
-                                    টেক্সট প্রমাণ এখানে লিখুন বা পেস্ট করুন</label>
-                                <textarea name="proof_text" rows="4"
-                                    class="w-full p-6 bg-white/5 border border-white/5 rounded-[32px] text-sm font-medium text-white focus:bg-white/10 focus:ring-primary-500 focus:border-primary-500 transition-all"
-                                    placeholder="এখানে লিখুন বা পেস্ট করুন..." required></textarea>
-                                <p
-                                    class="mt-3 text-[10px] font-bold text-rose-400 uppercase tracking-tight flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                    </svg>
+                            @php $codeCount = max(1, (int)($task->secret_code_count ?? 1)); @endphp
+                            <div class="space-y-4">
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                    🔑 সিক্রেট কোড জমা দিন
+                                    @if($codeCount > 1)
+                                        <span class="ml-2 text-violet-400">({{ $codeCount }}টি কোড দরকার)</span>
+                                    @endif
+                                </label>
+                                @for($i = 0; $i < $codeCount; $i++)
+                                    <div>
+                                        @if($codeCount > 1)
+                                            <span class="text-[9px] font-black text-violet-400 uppercase tracking-widest mb-1 block">কোড #{{ $i + 1 }}</span>
+                                        @endif
+                                        <input type="text" name="proof_codes[{{ $i }}]"
+                                            class="w-full p-5 bg-white/5 border border-white/5 rounded-[28px] text-sm font-mono font-bold text-white focus:bg-white/10 focus:ring-primary-500 focus:border-primary-500 transition-all tracking-widest"
+                                            placeholder="কোড #{{ $i + 1 }} এখানে পেস্ট করুন..." required
+                                            value="{{ old("proof_codes.{$i}") }}">
+                                    </div>
+                                @endfor
+                                <p class="text-[10px] font-bold text-rose-400 uppercase tracking-tight flex items-center gap-1.5">
                                     ⚠️ ভুল প্রমাণ দিলে টাস্ক রিজেক্ট হবে।
                                 </p>
                             </div>
@@ -323,43 +331,50 @@
                         @endif
 
                         @if($task->requires_image_proof)
-                            <div>
-                                <label
-                                    class="block mb-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">স্ক্রিনশট
-                                    আপলোড (Screenshot Proof)</label>
-                                <div class="group relative">
-                                    <label
-                                        class="flex flex-col items-center justify-center w-full h-56 border-2 border-white/5 border-dashed rounded-[40px] cursor-pointer bg-white/5 hover:bg-white/10 hover:border-primary-500 transition-all">
-                                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                            <div
-                                                class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-slate-500 mb-4 group-hover:scale-110 group-hover:text-primary-500 transition-all shadow-sm">
-                                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                                    </path>
-                                                </svg>
+                            @php $imgCount = max(1, (int)($task->image_proof_count ?? 1)); @endphp
+                            <div class="space-y-4">
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                    📸 স্ক্রিনশট আপলোড করুন
+                                    @if($imgCount > 1)
+                                        <span class="ml-2 text-primary-400">({{ $imgCount }}টি ছবি দরকার)</span>
+                                    @endif
+                                </label>
+                                @for($i = 0; $i < $imgCount; $i++)
+                                    <div>
+                                        @if($imgCount > 1)
+                                            <span class="text-[9px] font-black text-primary-400 uppercase tracking-widest mb-1 block">ছবি #{{ $i + 1 }}</span>
+                                        @endif
+                                        <div class="group relative">
+                                            <label id="img-label-{{ $i }}"
+                                                class="flex flex-col items-center justify-center w-full h-40 border-2 border-white/5 border-dashed rounded-[32px] cursor-pointer bg-white/5 hover:bg-white/10 hover:border-primary-500 transition-all">
+                                                <div class="flex flex-col items-center justify-center">
+                                                    <div class="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-slate-500 mb-3 group-hover:text-primary-500 transition-all">
+                                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                                            </path>
+                                                        </svg>
+                                                    </div>
+                                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">ছবি #{{ $i + 1 }} আপলোড করুন</p>
+                                                    <p class="text-[9px] text-slate-500 mt-1">PNG, JPG (Max 4MB)</p>
+                                                </div>
+                                                <input name="proof_images[{{ $i }}]" type="file" id="proof_image_{{ $i }}"
+                                                    class="hidden" required accept="image/*"
+                                                    onchange="previewProofImage(this, {{ $i }})">
+                                            </label>
+                                            <div id="img-preview-{{ $i }}"
+                                                class="hidden absolute inset-0 rounded-[32px] overflow-hidden bg-dark-card pointer-events-none border-2 border-primary-500">
+                                                <img id="preview-img-{{ $i }}" class="w-full h-full object-cover">
+                                                <button type="button" onclick="resetProofImage({{ $i }})"
+                                                    class="absolute top-3 right-3 bg-white/90 p-2 rounded-xl shadow-xl pointer-events-auto">
+                                                    <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                    </svg>
+                                                </button>
                                             </div>
-                                            <p class="text-xs font-black text-slate-400 uppercase tracking-tighter">ক্লিক
-                                                করে স্ক্রিনশট অ্যাটাচ করুন</p>
-                                            <p class="text-[9px] text-slate-500 mt-1 uppercase tracking-widest">PNG, JPG or
-                                                JPEG (Max 4MB)</p>
                                         </div>
-                                        <input name="proof_image" type="file" id="proof_image" class="hidden" required
-                                            onchange="previewImage(this)" />
-                                    </label>
-                                    <div id="image-preview"
-                                        class="hidden absolute inset-0 rounded-[40px] overflow-hidden bg-dark-card pointer-events-none border-2 border-primary-500 shadow-2xl shadow-primary-900/40">
-                                        <img id="preview-img" class="w-full h-full object-cover">
-                                        <button type="button" onclick="resetPreview()"
-                                            class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-3 rounded-2xl shadow-xl pointer-events-auto">
-                                            <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M6 18L18 6M6 6l12 12"></path>
-                                            </svg>
-                                        </button>
                                     </div>
-                                </div>
+                                @endfor
                             </div>
                         @endif
 
@@ -388,24 +403,25 @@
 
     @push('scripts')
         <script>
-            function previewImage(input) {
-                const preview = document.getElementById('image-preview');
-                const img = document.getElementById('preview-img');
+            // ── Multi-Proof Image Preview ──────────────────────────────────
+            function previewProofImage(input, idx) {
+                const preview = document.getElementById('img-preview-' + idx);
+                const img = document.getElementById('preview-img-' + idx);
                 if (input.files && input.files[0]) {
                     const reader = new FileReader();
-                    reader.onload = function (e) {
+                    reader.onload = function(e) {
                         img.src = e.target.result;
                         preview.classList.remove('hidden');
-                    }
+                    };
                     reader.readAsDataURL(input.files[0]);
                 }
             }
 
-            function resetPreview() {
-                const preview = document.getElementById('image-preview');
-                const input = document.getElementById('proof_image');
-                input.value = '';
-                preview.classList.add('hidden');
+            function resetProofImage(idx) {
+                const preview = document.getElementById('img-preview-' + idx);
+                const input = document.getElementById('proof_image_' + idx);
+                if (input) input.value = '';
+                if (preview) preview.classList.add('hidden');
             }
 
             // ── Double-Click / Idempotency Protection ──────────────────────

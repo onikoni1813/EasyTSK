@@ -46,7 +46,8 @@
                     </button>
                 </div>
             @else
-        <form action="{{ route('withdrawals.store') }}" method="POST" class="space-y-6 relative" x-data="{
+        <form action="{{ route('withdrawals.store') }}" method="POST" class="space-y-6 relative" @submit="isSubmitting = true" x-data="{
+                isSubmitting: false,
                 amount: null,
                 method: '{{ $activeMethods->first()?->name }}',
                 methods: {{ $activeMethods->map(fn($m) => [
@@ -248,10 +249,11 @@
                         </div>
                     </div>
 
-                    <button type="submit" :disabled="!canSubmit"
+                    <button type="submit" :disabled="!canSubmit || isSubmitting"
                         class="flex items-center justify-center w-full py-5 border-0 rounded-[24px] text-sm font-black uppercase tracking-widest transition-all shadow-xl shadow-black/20"
-                        :class="canSubmit ? 'bg-white text-dark-card hover:bg-primary-500 hover:shadow-primary-900/40' : 'bg-white/5 text-slate-500 cursor-not-allowed'">
-                        কনফার্ম রিকোয়েস্ট
+                        :class="(canSubmit && !isSubmitting) ? 'bg-white text-dark-card hover:bg-primary-500 hover:shadow-primary-900/40' : 'bg-white/5 text-slate-500 cursor-not-allowed'">
+                        <span x-show="!isSubmitting">কনফার্ম রিকোয়েস্ট</span>
+                        <span x-show="isSubmitting">প্রসেস হচ্ছে...</span>
                         <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none"
                             stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

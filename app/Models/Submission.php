@@ -11,13 +11,22 @@ class Submission extends Model
         'user_id',
         'status',
         'proof_text',
+        'proof_texts',
         'proof_email',
         'proof_password',
         'proof_image',
+        'proof_images',
         'proof_hash',
+        'proof_hashes',
         'admin_notes',
         'moderated_by',
         'moderated_at',
+    ];
+
+    protected $casts = [
+        'proof_texts'  => 'array',
+        'proof_images' => 'array',
+        'proof_hashes' => 'array',
     ];
 
     public function task()

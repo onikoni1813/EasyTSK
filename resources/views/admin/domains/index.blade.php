@@ -55,7 +55,7 @@
                         <label for="domain"
                             class="block mb-3 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">Domain
                             URL</label>
-                        <input type="url" id="domain" name="domain" placeholder="https://example.com"
+                        <input type="text" id="domain" name="domain" placeholder="subdomain.example.com"
                             class="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-white font-black text-sm focus:bg-white/10 focus:ring-primary-500 transition-all placeholder:text-slate-500 outline-none"
                             required>
                     </div>
@@ -91,7 +91,7 @@
                         <label for="direct_link"
                             class="block mb-3 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">Custom
                             Direct Link ({direct_link})</label>
-                        <input type="url" id="direct_link" name="direct_link"
+                        <input type="text" id="direct_link" name="direct_link"
                             placeholder="https://custom-direct-link.com"
                             class="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-white font-black text-sm focus:bg-white/10 focus:ring-primary-500 transition-all placeholder:text-slate-500 outline-none">
                     </div>
@@ -118,7 +118,7 @@
                         <label for="edit_domain_input"
                             class="block mb-3 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">Domain
                             URL</label>
-                        <input type="url" id="edit_domain_input" name="domain" x-model="editDomain"
+                        <input type="text" id="edit_domain_input" name="domain" x-model="editDomain"
                             class="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-white font-black text-sm focus:bg-white/10 focus:ring-primary-500 transition-all outline-none"
                             required>
                     </div>
@@ -151,7 +151,7 @@
                         <label for="edit_direct_link_input"
                             class="block mb-3 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">Custom
                             Direct Link ({direct_link})</label>
-                        <input type="url" id="edit_direct_link_input" name="direct_link" x-model="editDirectLink"
+                        <input type="text" id="edit_direct_link_input" name="direct_link" x-model="editDirectLink"
                             class="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-white font-black text-sm focus:bg-white/10 focus:ring-primary-500 transition-all outline-none">
                     </div>
 
@@ -251,8 +251,12 @@
                                 <td class="px-6 py-5 text-right">
                                     <div class="flex items-center justify-end gap-3">
                                         <!-- Edit Button (AlpineJS Triggers Edit Form with multiple banner codes) -->
-                                        <button type="button"
-                                            @click="editMode = true; editId = '{{ $domain->id }}'; editDomain = '{{ $domain->domain }}'; editAdCode1 = @json($domain->ad_code_1); editAdCode2 = @json($domain->ad_code_2); editAdCode3 = @json($domain->ad_code_3); editDirectLink = '{{ $domain->direct_link }}'; editActive = {{ $domain->is_active ? 'true' : 'false' }}; window.scrollTo({top: 0, behavior: 'smooth'});"
+                                        <button type="button" data-domain="{{ e(json_encode($domain->domain)) }}"
+                                            data-ad-code-1="{{ e(json_encode($domain->ad_code_1)) }}"
+                                            data-ad-code-2="{{ e(json_encode($domain->ad_code_2)) }}"
+                                            data-ad-code-3="{{ e(json_encode($domain->ad_code_3)) }}"
+                                            data-direct-link="{{ e(json_encode($domain->direct_link)) }}"
+                                            @click="editMode = true; editId = '{{ $domain->id }}'; editDomain = JSON.parse($el.dataset.domain); editAdCode1 = JSON.parse($el.dataset.adCode1); editAdCode2 = JSON.parse($el.dataset.adCode2); editAdCode3 = JSON.parse($el.dataset.adCode3); editDirectLink = JSON.parse($el.dataset.directLink); editActive = {{ $domain->is_active ? 'true' : 'false' }}; window.scrollTo({top: 0, behavior: 'smooth'});"
                                             class="p-2 bg-amber-500/10 rounded-xl border border-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-dark transition-all">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

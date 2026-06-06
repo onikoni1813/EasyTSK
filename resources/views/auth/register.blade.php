@@ -66,7 +66,7 @@
             <label for="referred_by"
                 class="block mb-2 text-xs font-bold text-slate-300 uppercase tracking-wider">রেফারেল কোড
                 (ঐচ্ছিক)</label>
-            <input id="referred_by" type="text" name="referred_by" value="{{ request('ref') ?? old('referred_by') }}"
+            <input id="referred_by" type="text" name="referred_by" value="{{ old('referred_by', request('ref') ?? session('ref') ?? request()->cookie('ref') ?? '') }}"
                 class="block w-full px-4 py-3 bg-slate-800/50 border border-slate-700 text-white text-sm rounded-xl focus:ring-green-500 focus:border-green-500 transition-all placeholder:text-slate-500 font-bold tracking-widest uppercase"
                 placeholder="REF12345" />
             <x-input-error :messages="$errors->get('referred_by')" class="mt-2" />

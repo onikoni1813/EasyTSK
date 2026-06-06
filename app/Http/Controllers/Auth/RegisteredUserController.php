@@ -45,6 +45,13 @@ class RegisteredUserController extends Controller
             ]);
         }
 
+        // Normalize referral code to uppercase before validation
+        if ($request->filled('referred_by')) {
+            $request->merge([
+                'referred_by' => strtoupper(trim($request->referred_by)),
+            ]);
+        }
+
         $request->validate([
             'full_name' => ['required', 'string', 'max:255'],
             'mobile_number' => ['required', 'string', 'regex:/^(?:\+88|88)?(01[3-9]\d{8})$/', 'unique:'.User::class],
@@ -57,6 +64,7 @@ class RegisteredUserController extends Controller
         ], [
             'device_fingerprint.required' => 'Unable to verify device identity safely. Please disable adblockers/VPNs or try another browser.',
             'website_url.max' => 'Bot detected. If you are human, please try again.',
+            'referred_by.exists' => 'রেফারেল কোডটি সঠিক নয়। দয়া করে সঠিক রেফারেল কোড ব্যবহার করুন অথবা ফাঁকা রেখে রেজিস্ট্রেশন করুন।',
         ]);
 
         // ── Fraud checks AFTER validation (clean data only) ──────────────────
@@ -102,11 +110,16 @@ class RegisteredUserController extends Controller
             }
         }
 
-        $referredBy = $request->referred_by ?? session('ref') ?? request()->cookie('ref');
+        // Use filled() instead of ?? because ?? only checks null, not empty string.
+        // When form field is empty, $request->referred_by = "" and "" ?? session('ref') = ""
+        // which means session/cookie fallback would NEVER trigger with ??.
+        $referredBy = $request->filled('referred_by')
+            ? $request->referred_by
+            : (session('ref') ?? request()->cookie('ref'));
 
         $referrer = null;
         if ($referredBy) {
-            $referrer = User::where('referral_code', strtoupper($referredBy))->first();
+            $referrer = User::where('referral_code', strtoupper(trim($referredBy)))->first();
         }
 
         // ── Wrap user creation + signup bonus in DB transaction ──────────────

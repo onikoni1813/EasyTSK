@@ -49,11 +49,15 @@ class UpdateLeaderboard extends Command
 
         foreach ($periods as $periodName => $dates) {
             // 1. Top Earners (Weekly/Monthly)
+            // whereIn existing users — deleted users এর transaction ignore হবে
+            $existingUserIds = DB::table('users')->pluck('id');
+
             $topEarners = DB::table('transactions')
                 ->select('user_id', DB::raw('SUM(amount_bdt) as total_amount'))
                 ->whereBetween('created_at', [$dates['start'], $dates['end']])
-                ->whereIn('type', ['task_completion', 'referral_bonus', 'offerwall_completion']) // Based on earning types
+                ->whereIn('type', ['task_completion', 'referral_bonus', 'offerwall_completion'])
                 ->where('status', 'completed')
+                ->whereIn('user_id', $existingUserIds)  // ← deleted user skip
                 ->groupBy('user_id')
                 ->orderByDesc('total_amount')
                 ->limit(50)
@@ -82,16 +86,16 @@ class UpdateLeaderboard extends Command
                 ->get();
 
             foreach ($topReferrers as $referrer) {
-                // Only legitimate users
-                if ($referrer->user_id) {
+                // Only legitimate existing users
+                if ($referrer->user_id && $existingUserIds->contains($referrer->user_id)) {
                     $newRows[] = [
-                        'user_id' => $referrer->user_id,
-                        'type' => 'referral',
-                        'period' => $periodName,
+                        'user_id'               => $referrer->user_id,
+                        'type'                  => 'referral',
+                        'period'                => $periodName,
                         'total_amount_or_count' => $referrer->total_referrals,
-                        'last_updated_at' => $now,
-                        'created_at' => $now,
-                        'updated_at' => $now,
+                        'last_updated_at'       => $now,
+                        'created_at'            => $now,
+                        'updated_at'            => $now,
                     ];
                 }
             }

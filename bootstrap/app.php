@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
         $middleware->prependToGroup('web', [
             \App\Http\Middleware\CheckMaintenanceMode::class,
+        ]);
+        // CaptureTrackingParameters MUST run AFTER StartSession (which is in 'web' group)
+        // so that session reads/writes are properly persisted.
+        $middleware->appendToGroup('web', [
             \App\Http\Middleware\CaptureTrackingParameters::class,
         ]);
         $middleware->alias([

@@ -127,8 +127,14 @@ class BlogPostApiController extends Controller
 
         if ($domainHost) {
             // Direct DB query to avoid N+1 loading all domains
+            // Try exact match first (normalized bare hostname), then legacy full-URL match
             $taskDomain = TaskDomain::where('is_active', true)
-                ->whereRaw('LOWER(domain) = ?', [strtolower($domainHost)])
+                ->where(function ($q) use ($domainHost) {
+                    $q->whereRaw('LOWER(domain) = ?', [strtolower($domainHost)])
+                      ->orWhereRaw('LOWER(domain) = ?', [strtolower('https://' . $domainHost)])
+                      ->orWhereRaw('LOWER(domain) = ?', [strtolower('http://' . $domainHost)])
+                      ->orWhereRaw('LOWER(domain) LIKE ?', ['%' . strtolower($domainHost) . '%']);
+                })
                 ->first();
 
             if ($taskDomain) {
@@ -139,8 +145,8 @@ class BlogPostApiController extends Controller
             }
         }
 
-        // Dynamically substitute placeholders inside the post content if present
-        $content = $post->content;
+        // Apply nl2br BEFORE injecting ad codes to prevent breaking multi-line JavaScript inside ad tags
+        $content = nl2br($post->content ?? '');
         
         // Backward compatibility for {ad_code}
         if (str_contains($content, '{ad_code}')) {
@@ -170,9 +176,14 @@ class BlogPostApiController extends Controller
         }
         // Dynamic secret code — same formula as TaskController::submit()
         // Compute even if not in content, so blog subdomain can use it via API
-        // 🔒 Read from .env — NOT from DB settings (DB is visible in admin panel)
         $secretSalt = env('TASK_SECRET_SALT', 'MicroJobV1Secret!');
-        $secretCode = substr(md5($uid . $tid . $secretSalt), 0, 8);
+        if (empty($uid) || empty($tid)) {
+            // SEO Task Fallback: Generate a daily code if uid/tid are stripped by Google
+            $secretCode = substr(md5(date('Y-m-d') . $secretSalt), 0, 8);
+        } else {
+            // Direct Link: Generate user-specific code
+            $secretCode = substr(md5($uid . $tid . $secretSalt), 0, 8);
+        }
 
         if (str_contains($content, '{secret_code}')) {
             $content = str_replace('{secret_code}', $secretCode, $content);

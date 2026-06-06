@@ -81,13 +81,13 @@ class AdminSettingsController extends Controller
             'signup_bonus_points'    => 'required|integer|min:0',
             'referral_bonus_amount' => 'required|numeric|min:0',
             'referral_unlock_target' => 'required|numeric|min:0',
-            'timewall_usd_to_points_rate' => 'required|integer|min:1',
-            'timewall_platform_share_percent' => 'required|numeric|min:0|max:100',
+            'timewall_usd_to_points_rate' => 'nullable|integer|min:1',
+            'timewall_platform_share_percent' => 'nullable|numeric|min:0|max:100',
             'monlix_secret_key' => 'nullable|string',
-            'monlix_conversion_rate' => 'required|numeric|min:0',
-            'adsterra_timer_seconds' => 'required|integer|min:5|max:120',
+            'monlix_conversion_rate' => 'nullable|numeric|min:0',
+            'adsterra_timer_seconds' => 'nullable|integer|min:5|max:120',
             'blog_timer_seconds' => 'required|integer|min:10|max:300',
-            'adsterra_platform_share_percent' => 'required|numeric|min:0|max:100',
+            'adsterra_platform_share_percent' => 'nullable|numeric|min:0|max:100',
             'custom_platform_share_percent' => 'required|numeric|min:0|max:100',
             'moderator_salary_per_task' => 'required|numeric|min:0',
             'fake_member_offset' => 'required|integer|min:0',
@@ -99,9 +99,9 @@ class AdminSettingsController extends Controller
             'notice_board_text' => 'nullable|string|max:1000',
             'timewall_api_key' => 'nullable|string',
             'timewall_secret_key' => 'nullable|string',
-            'timewall_display_name' => 'required|string|max:50',
-            'monlix_display_name' => 'required|string|max:50',
-            'adsterra_display_name' => 'required|string|max:50',
+            'timewall_display_name' => 'nullable|string|max:50',
+            'monlix_display_name' => 'nullable|string|max:50',
+            'adsterra_display_name' => 'nullable|string|max:50',
             'adsterra_direct_link' => 'nullable|string|url',
             'site_name' => 'required|string|max:255',
             'site_logo' => 'nullable|image|max:2048',
@@ -241,6 +241,7 @@ class AdminSettingsController extends Controller
             'mail_host' => Setting::get('mail_host', config('mail.mailers.smtp.host')),
             'mail_port' => Setting::get('mail_port', config('mail.mailers.smtp.port')),
             'mail_username' => Setting::get('mail_username', config('mail.mailers.smtp.username')),
+            'mail_password' => Setting::get('mail_password', config('mail.mailers.smtp.password')),
             'mail_encryption' => Setting::get('mail_encryption', config('mail.mailers.smtp.encryption')),
             'mail_from_address' => Setting::get('mail_from_address', config('mail.from.address')),
         ];
@@ -254,6 +255,7 @@ class AdminSettingsController extends Controller
             'mail_host' => 'required',
             'mail_port' => 'required|integer',
             'mail_username' => 'nullable',
+            'mail_password' => 'nullable|string',
             'mail_encryption' => 'nullable',
             'mail_from_address' => 'required|email',
         ]);
@@ -261,6 +263,7 @@ class AdminSettingsController extends Controller
         Setting::set('mail_host', $request->mail_host);
         Setting::set('mail_port', $request->mail_port);
         Setting::set('mail_username', $request->mail_username);
+        Setting::set('mail_password', $request->mail_password);
         Setting::set('mail_encryption', $request->mail_encryption);
         Setting::set('mail_from_address', $request->mail_from_address);
 

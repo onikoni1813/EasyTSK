@@ -82,9 +82,13 @@
                     <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
                         {{ optional($ticket->user)->email ?? 'N/A' }}
                     </p>
+                    @if($ticket->user)
                     <a href="{{ route('admin.users.show', $ticket->user) }}"
                         class="inline-block mt-6 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-slate-400 hover:text-white transition-all uppercase tracking-widest">View
                         Dossier</a>
+                    @else
+                    <span class="inline-block mt-6 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-rose-400 uppercase tracking-widest">Deleted User</span>
+                    @endif
                 </div>
             </div>
         </div>

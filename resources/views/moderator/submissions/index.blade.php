@@ -28,8 +28,8 @@
                 @forelse($submissions as $sub)
                 <tr class="bg-white border-b dark:bg-gray-800 dark:hover:bg-gray-700">
                     <td class="px-6 py-4">
-                        <div class="font-bold text-blue-600">{{ $sub->task->title }}</div>
-                        <div class="text-xs text-gray-500">By: {{ $sub->user->name }}</div>
+                        <div class="font-bold text-blue-600">{{ optional($sub->task)->title ?? 'N/A' }}</div>
+                        <div class="text-xs text-gray-500">By: {{ optional($sub->user)->name ?? 'Deleted User' }}</div>
                         <div class="text-xs text-gray-400">Submitted: {{ $sub->created_at->diffForHumans() }}</div>
                     </td>
                     <td class="px-6 py-4">

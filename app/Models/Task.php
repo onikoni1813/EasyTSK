@@ -22,6 +22,9 @@ class Task extends Model
         'instruction_images',
         'settings',
         'secret_code',
+        'secret_code_count',
+        'secret_codes',
+        'image_proof_count',
         'is_active',
         'is_optional',
     ];
@@ -29,6 +32,9 @@ class Task extends Model
     protected $casts = [
         'settings'             => 'json',
         'instruction_images'   => 'array',
+        'secret_codes'         => 'array',
+        'secret_code_count'    => 'integer',
+        'image_proof_count'    => 'integer',
         'is_active'            => 'boolean',
         'is_optional'          => 'boolean',
         'requires_text_proof'  => 'boolean',
