@@ -73,17 +73,10 @@
                 $isLocked   = in_array($task->id, $lockedTaskIds ?? []);
                 $isRejected = in_array($task->id, $rejectedTaskIds ?? []);
             @endphp
-            <div class="relative p-8 bg-dark-card border {{ $isLocked ? 'border-white/5 opacity-70' : ($isRejected ? 'border-rose-500/20' : 'border-white/5') }} rounded-[40px] shadow-sm transition-all {{ $isLocked ? '' : 'hover:shadow-2xl hover:-translate-y-2' }} overflow-hidden group flex flex-col h-full">
+            <div class="relative p-8 bg-dark-card border {{ $isLocked ? 'border-white/5 opacity-70' : ($isRejected ? 'border-rose-500/25' : 'border-white/5') }} rounded-[40px] shadow-sm transition-all {{ $isLocked ? '' : 'hover:shadow-2xl hover:-translate-y-2' }} overflow-hidden group flex flex-col h-full">
 
                 {{-- Kinetic Decoration --}}
                 <div class="absolute -top-10 -right-10 w-32 h-32 {{ $isLocked ? 'bg-slate-500/10' : ($isRejected ? 'bg-rose-500/10' : 'bg-primary-500/10') }} rounded-full {{ $isLocked ? '' : 'group-hover:scale-150' }} transition-transform duration-700"></div>
-
-                {{-- Rejected Badge --}}
-                @if($isRejected && !$isLocked)
-                    <div class="absolute top-4 right-4 z-10 flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/20 border border-rose-500/30 rounded-xl">
-                        <span class="text-[9px] font-black text-rose-400 uppercase tracking-widest">❌ রিজেক্ট — পুনরায় করুন</span>
-                    </div>
-                @endif
 
                 {{-- Lock Overlay --}}
                 @if($isLocked)
@@ -104,6 +97,11 @@
                         <span class="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-xl {{ $isLocked ? 'bg-slate-500/10 text-slate-500 border border-slate-500/20' : 'bg-primary-500/10 text-primary-500 border border-primary-500/20' }}">
                             #{{ $task->sort_order }} · {{ strtoupper($task->type) }}
                         </span>
+                        @if($isRejected && !$isLocked)
+                            <span class="px-2.5 py-1 text-[8px] font-black uppercase tracking-widest rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center gap-1">
+                                ❌ রিজেক্ট
+                            </span>
+                        @endif
                         @if($task->requires_text_proof && !$task->secret_code)
                             <span class="px-2.5 py-1 text-[8px] font-black uppercase tracking-widest rounded-xl bg-violet-500/10 text-violet-400 border border-violet-500/20 flex items-center gap-1">
                                 🔐 ব্লগ কোড
@@ -126,6 +124,16 @@
                 </div>
 
                 <div class="flex-1 relative">
+                    @if($isRejected && !$isLocked)
+                        <div class="mb-4 p-3 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center gap-2.5 text-rose-400">
+                            <span class="text-sm shrink-0">❌</span>
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-black uppercase tracking-wider">রিজেক্ট — পুনরায় করুন</span>
+                                <span class="text-[8px] font-bold text-rose-300/60 mt-0.5">অনুগ্রহ করে নিয়ম মেনে আবার চেষ্টা করুন</span>
+                            </div>
+                        </div>
+                    @endif
+
                     <h5 class="mb-3 text-lg font-black tracking-tight {{ $isLocked ? 'text-slate-500' : 'text-white group-hover:text-primary-500' }} transition-colors line-clamp-2">
                         {{ $task->title }}
                     </h5>
