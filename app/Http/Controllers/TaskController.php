@@ -37,15 +37,17 @@ class TaskController extends Controller
                                ->pluck('id')
                                ->toArray();
 
-        // Build set of rejected task IDs for this user (to show re-submit badge)
-        $rejectedTaskIds = \App\Models\Submission::where('user_id', $user->id)
+        // Build map of rejected task IDs to their latest rejection notes for this user
+        $rejectedTasks = \App\Models\Submission::where('user_id', $user->id)
             ->where('status', 'rejected')
             ->whereIn('task_id', $tasks->pluck('id'))
-            ->pluck('task_id')
-            ->unique()
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->unique('task_id')
+            ->pluck('admin_notes', 'task_id')
             ->toArray();
 
-        return view('tasks.index', compact('tasks', 'lockedTaskIds', 'rejectedTaskIds'));
+        return view('tasks.index', compact('tasks', 'lockedTaskIds', 'rejectedTasks'));
 
     }
 

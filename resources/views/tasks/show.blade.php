@@ -15,9 +15,9 @@
             <div class="w-12 h-12 bg-rose-500/20 rounded-2xl flex items-center justify-center text-rose-400 shrink-0 text-xl">❌</div>
             <div class="flex-1">
                 <h4 class="text-sm font-black text-rose-400 uppercase tracking-widest mb-1">আপনার আগের সাবমিশন রিজেক্ট হয়েছে</h4>
-                @if($rejectedSubmission->rejection_reason)
-                    <p class="text-xs font-bold text-rose-300/80 mb-3 leading-relaxed">
-                        কারণ: {{ $rejectedSubmission->rejection_reason }}
+                @if($rejectedSubmission->admin_notes)
+                    <p class="text-xs font-bold text-rose-300/80 mb-3 break-words whitespace-pre-line leading-relaxed">
+                        কারণ: {{ $rejectedSubmission->admin_notes }}
                     </p>
                 @endif
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">

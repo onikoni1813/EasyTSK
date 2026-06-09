@@ -70,8 +70,9 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         @forelse($tasks as $task)
             @php
-                $isLocked   = in_array($task->id, $lockedTaskIds ?? []);
-                $isRejected = in_array($task->id, $rejectedTaskIds ?? []);
+                $isLocked        = in_array($task->id, $lockedTaskIds ?? []);
+                $isRejected      = isset($rejectedTasks[$task->id]);
+                $rejectionReason = $rejectedTasks[$task->id] ?? null;
             @endphp
             <div class="relative p-8 bg-dark-card border {{ $isLocked ? 'border-white/5 opacity-70' : ($isRejected ? 'border-rose-500/25' : 'border-white/5') }} rounded-[40px] shadow-sm transition-all {{ $isLocked ? '' : 'hover:shadow-2xl hover:-translate-y-2' }} overflow-hidden group flex flex-col h-full">
 
@@ -125,11 +126,17 @@
 
                 <div class="flex-1 relative">
                     @if($isRejected && !$isLocked)
-                        <div class="mb-4 p-3 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center gap-2.5 text-rose-400">
+                        <div class="mb-4 p-3.5 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-start gap-2.5 text-rose-400">
                             <span class="text-sm shrink-0">❌</span>
-                            <div class="flex flex-col">
-                                <span class="text-[10px] font-black uppercase tracking-wider">রিজেক্ট — পুনরায় করুন</span>
-                                <span class="text-[8px] font-bold text-rose-300/60 mt-0.5">অনুগ্রহ করে নিয়ম মেনে আবার চেষ্টা করুন</span>
+                            <div class="flex-1 min-w-0">
+                                <span class="text-[10px] font-black uppercase tracking-wider block">রিজেক্ট — পুনরায় করুন</span>
+                                @if($rejectionReason)
+                                    <p class="text-[10px] font-bold text-rose-300/80 mt-1 break-words whitespace-pre-line leading-relaxed">
+                                        কারণ: {{ $rejectionReason }}
+                                    </p>
+                                @else
+                                    <span class="text-[8px] font-bold text-rose-300/60 mt-0.5 block">অনুগ্রহ করে নিয়ম মেনে আবার চেষ্টা করুন</span>
+                                @endif
                             </div>
                         </div>
                     @endif
