@@ -121,14 +121,18 @@ class AdminSubmissionController extends Controller
                 }
 
                 $fresh->update([
-                    'status' => 'rejected',
-                    'admin_notes' => $request->rejection_reason,
+                    'status'       => 'rejected',
+                    'admin_notes'  => $request->rejection_reason,
                     'moderated_by' => Auth::id(),
                     'moderated_at' => now(),
                 ]);
 
                 // Restore quota so the task becomes available again
-                $fresh->task->increment('quota_remaining');
+                // But skip if quota is unlimited (quota_remaining = -1)
+                $task = $fresh->task;
+                if ($task->quota_remaining !== -1) {
+                    $task->increment('quota_remaining');
+                }
 
                 $user = $fresh->user;
                 $user->decrement('trust_score', 5);
