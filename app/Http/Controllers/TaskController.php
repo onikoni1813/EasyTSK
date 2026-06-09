@@ -37,7 +37,16 @@ class TaskController extends Controller
                                ->pluck('id')
                                ->toArray();
 
-        return view('tasks.index', compact('tasks', 'lockedTaskIds'));
+        // Build set of rejected task IDs for this user (to show re-submit badge)
+        $rejectedTaskIds = \App\Models\Submission::where('user_id', $user->id)
+            ->where('status', 'rejected')
+            ->whereIn('task_id', $tasks->pluck('id'))
+            ->pluck('task_id')
+            ->unique()
+            ->toArray();
+
+        return view('tasks.index', compact('tasks', 'lockedTaskIds', 'rejectedTaskIds'));
+
     }
 
     public function show(Task $task)
@@ -56,8 +65,16 @@ class TaskController extends Controller
         // ── Sequential Lock Check ────────────────────────────────
         if (! $task->isUnlockedFor($user)) {
             return redirect()->route('tasks.index')
-                ->with('info', '🔒 এই টাস্কটি এখনো লক আছে। আগের টাস্কটি সম্পন্ন করুন এবং Approve হলে এটি আনলক হবে।');
+                ->with('info', '🔒 এই টাস্কটি এখনো লক আছে। আগের টাস্কটি সাবমিট করুন।');
         }
+
+        // ── Rejected Submission Check ─────────────────────────────
+        // Find latest rejected submission so we can show it to the user
+        $rejectedSubmission = $user->submissions()
+            ->where('task_id', $task->id)
+            ->where('status', 'rejected')
+            ->latest()
+            ->first();
         $alreadySubmitted = $user->submissions()
             ->where('task_id', $task->id)
             ->whereIn('status', ['pending', 'approved'])
@@ -107,7 +124,7 @@ class TaskController extends Controller
             }
         }
 
-        return view('tasks.show', compact('task'));
+        return view('tasks.show', compact('task', 'rejectedSubmission'));
     }
 
     public function submit(Request $request, Task $task)

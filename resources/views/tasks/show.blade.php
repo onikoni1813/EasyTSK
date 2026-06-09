@@ -9,6 +9,24 @@
         </a>
     </div>
 
+    {{-- ── Rejection Notice ─────────────────────────────────────── --}}
+    @if(isset($rejectedSubmission) && $rejectedSubmission)
+        <div class="mb-8 p-6 bg-rose-500/10 border border-rose-500/20 rounded-[32px] flex gap-4 items-start">
+            <div class="w-12 h-12 bg-rose-500/20 rounded-2xl flex items-center justify-center text-rose-400 shrink-0 text-xl">❌</div>
+            <div class="flex-1">
+                <h4 class="text-sm font-black text-rose-400 uppercase tracking-widest mb-1">আপনার আগের সাবমিশন রিজেক্ট হয়েছে</h4>
+                @if($rejectedSubmission->rejection_reason)
+                    <p class="text-xs font-bold text-rose-300/80 mb-3 leading-relaxed">
+                        কারণ: {{ $rejectedSubmission->rejection_reason }}
+                    </p>
+                @endif
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    🔄 নিচের ফর্ম পূরণ করে পুনরায় সাবমিট করুন
+                </p>
+            </div>
+        </div>
+    @endif
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
         <!-- Sidebar: Info -->
         <div class="lg:col-span-1 space-y-8">

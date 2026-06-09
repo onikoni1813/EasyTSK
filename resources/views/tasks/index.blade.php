@@ -69,11 +69,21 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         @forelse($tasks as $task)
-            @php $isLocked = in_array($task->id, $lockedTaskIds ?? []); @endphp
-            <div class="relative p-8 bg-dark-card border {{ $isLocked ? 'border-white/5 opacity-70' : 'border-white/5' }} rounded-[40px] shadow-sm transition-all {{ $isLocked ? '' : 'hover:shadow-2xl hover:-translate-y-2' }} overflow-hidden group flex flex-col h-full">
+            @php
+                $isLocked   = in_array($task->id, $lockedTaskIds ?? []);
+                $isRejected = in_array($task->id, $rejectedTaskIds ?? []);
+            @endphp
+            <div class="relative p-8 bg-dark-card border {{ $isLocked ? 'border-white/5 opacity-70' : ($isRejected ? 'border-rose-500/20' : 'border-white/5') }} rounded-[40px] shadow-sm transition-all {{ $isLocked ? '' : 'hover:shadow-2xl hover:-translate-y-2' }} overflow-hidden group flex flex-col h-full">
 
                 {{-- Kinetic Decoration --}}
-                <div class="absolute -top-10 -right-10 w-32 h-32 {{ $isLocked ? 'bg-slate-500/10' : 'bg-primary-500/10' }} rounded-full {{ $isLocked ? '' : 'group-hover:scale-150' }} transition-transform duration-700"></div>
+                <div class="absolute -top-10 -right-10 w-32 h-32 {{ $isLocked ? 'bg-slate-500/10' : ($isRejected ? 'bg-rose-500/10' : 'bg-primary-500/10') }} rounded-full {{ $isLocked ? '' : 'group-hover:scale-150' }} transition-transform duration-700"></div>
+
+                {{-- Rejected Badge --}}
+                @if($isRejected && !$isLocked)
+                    <div class="absolute top-4 right-4 z-10 flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/20 border border-rose-500/30 rounded-xl">
+                        <span class="text-[9px] font-black text-rose-400 uppercase tracking-widest">❌ রিজেক্ট — পুনরায় করুন</span>
+                    </div>
+                @endif
 
                 {{-- Lock Overlay --}}
                 @if($isLocked)
