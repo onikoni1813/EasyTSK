@@ -65,21 +65,25 @@ class Task extends Model
             return true;
         }
 
-        // Find the task immediately before this one
-        $prevTask = static::where('is_active', true)
+        // Find all active, non-optional tasks before this task
+        $prevTasks = static::where('is_active', true)
+            ->where('is_optional', false)
             ->where('sort_order', '<', $this->sort_order)
-            ->orderByDesc('sort_order')
-            ->first();
+            ->get();
 
-        if (! $prevTask) {
-            return true; // No previous task found — unlock by default
+        if ($prevTasks->isEmpty()) {
+            return true; // No required previous tasks — unlock by default
         }
 
-        // User must have submitted (pending OR approved) for the previous task
-        // Rejected submissions do NOT count — user must resubmit
-        return Submission::where('user_id', $user->id)
-            ->where('task_id', $prevTask->id)
+        $prevTaskIds = $prevTasks->pluck('id')->toArray();
+
+        // Count completed or pending submissions for all required previous tasks
+        $completedCount = Submission::where('user_id', $user->id)
+            ->whereIn('task_id', $prevTaskIds)
             ->whereIn('status', ['pending', 'approved'])
-            ->exists();
+            ->distinct()
+            ->count('task_id');
+
+        return $completedCount === count($prevTaskIds);
     }
 }
