@@ -75,10 +75,11 @@ class Task extends Model
             return true; // No previous task found — unlock by default
         }
 
-        // User must have an approved submission for the previous task
+        // User must have submitted (pending OR approved) for the previous task
+        // Rejected submissions do NOT count — user must resubmit
         return Submission::where('user_id', $user->id)
             ->where('task_id', $prevTask->id)
-            ->where('status', 'approved')
+            ->whereIn('status', ['pending', 'approved'])
             ->exists();
     }
 }
