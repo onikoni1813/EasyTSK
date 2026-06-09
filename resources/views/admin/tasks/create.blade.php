@@ -317,6 +317,17 @@
                         </div>
 
                         <div>
+                            <label for="sort_order"
+                                class="block mb-3 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">
+                                🔢 সিরিয়াল নম্বর (Sort Order)
+                            </label>
+                            <input type="number" id="sort_order" name="sort_order" placeholder="1"
+                                class="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-white font-black text-sm focus:bg-white/10 transition-all placeholder:text-slate-400"
+                                min="0" value="{{ old('sort_order', \App\Models\Task::max('sort_order') + 1) }}">
+                            <p class="text-[9px] text-slate-500 mt-2 font-bold uppercase tracking-widest">🔒 ছোট নম্বর আগে unlock হয় — 1 হলে সবার আগে দেখাবে</p>
+                        </div>
+
+                        <div>
                             <label for="points"
                                 class="block mb-3 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">Agent
                                 Bounty (PTS)</label>
@@ -324,6 +335,7 @@
                                 class="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-white font-black text-sm focus:bg-white/10 transition-all placeholder:text-slate-400"
                                 required>
                         </div>
+
 
                         <div>
                             <label for="admin_profit"

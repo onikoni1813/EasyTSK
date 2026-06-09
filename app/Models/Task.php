@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Task extends Model
 {
     protected $fillable = [
+        'sort_order',
         'title',
         'description',
         'points',
@@ -30,6 +31,7 @@ class Task extends Model
     ];
 
     protected $casts = [
+        'sort_order'           => 'integer',
         'settings'             => 'json',
         'instruction_images'   => 'array',
         'secret_codes'         => 'array',
@@ -45,5 +47,38 @@ class Task extends Model
     public function submissions()
     {
         return $this->hasMany(Submission::class);
+    }
+
+    /**
+     * Check if this task is unlocked for a given user.
+     *
+     * Rules:
+     *  - The task with the lowest sort_order is ALWAYS unlocked.
+     *  - Any other task requires an APPROVED submission for the task
+     *    immediately before it (by sort_order).
+     */
+    public function isUnlockedFor(User $user): bool
+    {
+        // First task in sequence — always open
+        $firstOrder = static::where('is_active', true)->min('sort_order');
+        if ($this->sort_order == $firstOrder) {
+            return true;
+        }
+
+        // Find the task immediately before this one
+        $prevTask = static::where('is_active', true)
+            ->where('sort_order', '<', $this->sort_order)
+            ->orderByDesc('sort_order')
+            ->first();
+
+        if (! $prevTask) {
+            return true; // No previous task found — unlock by default
+        }
+
+        // User must have an approved submission for the previous task
+        return Submission::where('user_id', $user->id)
+            ->where('task_id', $prevTask->id)
+            ->where('status', 'approved')
+            ->exists();
     }
 }

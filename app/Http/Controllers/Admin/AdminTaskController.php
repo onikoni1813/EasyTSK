@@ -23,6 +23,7 @@ class AdminTaskController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
+            'sort_order'           => 'nullable|integer|min:0',
             'title'                => 'required|string|max:255',
             'description'          => 'required|string',
             'points'               => 'required|integer|min:0',
@@ -78,6 +79,7 @@ class AdminTaskController extends Controller
     public function update(Request $request, Task $task)
     {
         $validatedData = $request->validate([
+            'sort_order'           => 'nullable|integer|min:0',
             'title'                => 'required|string|max:255',
             'description'          => 'required|string',
             'points'               => 'required|integer|min:0',

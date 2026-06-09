@@ -29,10 +29,15 @@ class TaskController extends Controller
                             ->orWhereRaw('`submissions`.`created_at` >= DATE_SUB(NOW(), INTERVAL `tasks`.`cooldown_hours` HOUR)');
                       });
             })
-            ->latest()
+            ->orderBy('sort_order')
             ->paginate(15);
 
-        return view('tasks.index', compact('tasks'));
+        // Build set of locked task IDs for this user
+        $lockedTaskIds = $tasks->filter(fn($t) => ! $t->isUnlockedFor($user))
+                               ->pluck('id')
+                               ->toArray();
+
+        return view('tasks.index', compact('tasks', 'lockedTaskIds'));
     }
 
     public function show(Task $task)
@@ -47,6 +52,12 @@ class TaskController extends Controller
 
         /** @var \App\Models\User $user */
         $user = \Illuminate\Support\Facades\Auth::user();
+
+        // ── Sequential Lock Check ────────────────────────────────
+        if (! $task->isUnlockedFor($user)) {
+            return redirect()->route('tasks.index')
+                ->with('info', '🔒 এই টাস্কটি এখনো লক আছে। আগের টাস্কটি সম্পন্ন করুন এবং Approve হলে এটি আনলক হবে।');
+        }
         $alreadySubmitted = $user->submissions()
             ->where('task_id', $task->id)
             ->whereIn('status', ['pending', 'approved'])
@@ -105,6 +116,11 @@ class TaskController extends Controller
 
         /** @var \App\Models\User $user */
         $user = \Illuminate\Support\Facades\Auth::user();
+
+        // ── Sequential Lock Check (server-side guard) ─────────────────────
+        if (! $task->isUnlockedFor($user)) {
+            return back()->with('error', '\ud83d\udd12 \u098f\u0987 \u099f\u09be\u09b8\u09cd\u0995\u099f\u09bf \u098f\u0996\u09a8\u09cb \u09b2\u0995 \u0986\u099b\u09c7\u0964 \u0986\u0997\u09c7\u09b0 \u099f\u09be\u09b8\u09cd\u0995\u099f\u09bf Approved \u09b9\u09b2\u09c7 \u098f\u099f\u09bf \u0986\u09a8\u09b2\u0995 \u09b9\u09ac\u09c7\u0964');
+        }
 
         // Build dynamic validation rules based on task's required proofs
         $rules = [];

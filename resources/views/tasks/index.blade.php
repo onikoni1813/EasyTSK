@@ -69,86 +69,106 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         @forelse($tasks as $task)
-            <div
-                class="relative p-8 bg-dark-card border border-white/5 rounded-[40px] shadow-sm transition-all hover:shadow-2xl hover:-translate-y-2 overflow-hidden group flex flex-col h-full">
-                <!-- Kinetic Decoration -->
-                <div
-                    class="absolute -top-10 -right-10 w-32 h-32 bg-primary-500/10 rounded-full group-hover:scale-150 transition-transform duration-700">
-                </div>
+            @php $isLocked = in_array($task->id, $lockedTaskIds ?? []); @endphp
+            <div class="relative p-8 bg-dark-card border {{ $isLocked ? 'border-white/5 opacity-70' : 'border-white/5' }} rounded-[40px] shadow-sm transition-all {{ $isLocked ? '' : 'hover:shadow-2xl hover:-translate-y-2' }} overflow-hidden group flex flex-col h-full">
+
+                {{-- Kinetic Decoration --}}
+                <div class="absolute -top-10 -right-10 w-32 h-32 {{ $isLocked ? 'bg-slate-500/10' : 'bg-primary-500/10' }} rounded-full {{ $isLocked ? '' : 'group-hover:scale-150' }} transition-transform duration-700"></div>
+
+                {{-- Lock Overlay --}}
+                @if($isLocked)
+                    <div class="absolute inset-0 z-10 bg-dark-card/60 backdrop-blur-[2px] rounded-[40px] flex flex-col items-center justify-center gap-3">
+                        <div class="w-16 h-16 bg-slate-700/50 border border-white/10 rounded-2xl flex items-center justify-center">
+                            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                        </div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center px-6">🔒 আগের টাস্ক সম্পন্ন করুন</p>
+                        <p class="text-[9px] font-bold text-slate-600 uppercase tracking-widest text-center px-6">Approve হলে এটি আনলক হবে</p>
+                    </div>
+                @endif
 
                 <div class="flex justify-between items-start mb-6 relative">
                     <div class="flex items-center gap-2 flex-wrap">
-                        <span
-                            class="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-xl bg-primary-500/10 text-primary-500 border border-primary-500/20">
-                            {{ strtoupper($task->type) }} SIGNAL
+                        <span class="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-xl {{ $isLocked ? 'bg-slate-500/10 text-slate-500 border border-slate-500/20' : 'bg-primary-500/10 text-primary-500 border border-primary-500/20' }}">
+                            #{{ $task->sort_order }} · {{ strtoupper($task->type) }}
                         </span>
                         @if($task->requires_text_proof && !$task->secret_code)
-                            <span
-                                class="px-2.5 py-1 text-[8px] font-black uppercase tracking-widest rounded-xl bg-violet-500/10 text-violet-400 border border-violet-500/20 flex items-center gap-1">
+                            <span class="px-2.5 py-1 text-[8px] font-black uppercase tracking-widest rounded-xl bg-violet-500/10 text-violet-400 border border-violet-500/20 flex items-center gap-1">
                                 🔐 ব্লগ কোড
                             </span>
                         @elseif($task->requires_text_proof && $task->secret_code)
-                            <span
-                                class="px-2.5 py-1 text-[8px] font-black uppercase tracking-widest rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center gap-1">
+                            <span class="px-2.5 py-1 text-[8px] font-black uppercase tracking-widest rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center gap-1">
                                 🔑 স্ট্যাটিক কোড
                             </span>
                         @endif
                         @if($task->requires_image_proof)
-                            <span
-                                class="px-2.5 py-1 text-[8px] font-black uppercase tracking-widest rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1">
+                            <span class="px-2.5 py-1 text-[8px] font-black uppercase tracking-widest rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1">
                                 📸 স্ক্রিনশট
                             </span>
                         @endif
                     </div>
-                    <span class="text-xl font-black text-primary-500 flex items-center gap-1 shrink-0">
+                    <span class="text-xl font-black {{ $isLocked ? 'text-slate-500' : 'text-primary-500' }} flex items-center gap-1 shrink-0">
                         {{ number_format($task->points) }}
                         <span class="text-[10px] text-slate-500 uppercase tracking-widest">Pts</span>
                     </span>
                 </div>
 
                 <div class="flex-1 relative">
-                    <h5
-                        class="mb-3 text-lg font-black tracking-tight text-white line-clamp-2 group-hover:text-primary-500 transition-colors">
+                    <h5 class="mb-3 text-lg font-black tracking-tight {{ $isLocked ? 'text-slate-500' : 'text-white group-hover:text-primary-500' }} transition-colors line-clamp-2">
                         {{ $task->title }}
                     </h5>
-                    <p class="mb-8 text-xs font-bold text-slate-400 line-clamp-3 leading-relaxed">
+                    <p class="mb-8 text-xs font-bold text-slate-500 line-clamp-3 leading-relaxed">
                         {{ Str::limit($task->description, 100) }}
                     </p>
 
                     {{-- Slot Progress Bar --}}
                     @php
-                        $slotUsed = $task->quota_max - $task->quota_remaining;
-                        $slotPct = $task->quota_max > 0 ? min(100, ($slotUsed / $task->quota_max) * 100) : 0;
-                        $slotBar = $slotPct >= 100 ? 'bg-rose-500' : ($slotPct >= 75 ? 'bg-amber-400' : 'bg-emerald-500');
-                        $slotText = $slotPct >= 100 ? 'text-rose-400' : ($slotPct >= 75 ? 'text-amber-400' : 'text-emerald-400');
+                        $isUnlim  = $task->quota_max == 0 || $task->quota_remaining == -1;
+                        $slotUsed = $isUnlim ? 0 : max(0, $task->quota_max - $task->quota_remaining);
+                        $slotPct  = (!$isUnlim && $task->quota_max > 0) ? min(100, ($slotUsed / $task->quota_max) * 100) : 0;
+                        $slotBar  = $isUnlim ? 'bg-emerald-500' : ($slotPct >= 100 ? 'bg-rose-500' : ($slotPct >= 75 ? 'bg-amber-400' : 'bg-emerald-500'));
+                        $slotText = $isUnlim ? 'text-emerald-400' : ($slotPct >= 100 ? 'text-rose-400' : ($slotPct >= 75 ? 'text-amber-400' : 'text-emerald-400'));
                     @endphp
                     <div class="mb-8">
                         <div class="flex justify-between items-center mb-1.5">
                             <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">স্লট পূর্ণতা</span>
                             <span class="text-[9px] font-black {{ $slotText }} uppercase tracking-widest">
-                                {{ $task->quota_remaining }} বাকি / {{ $task->quota_max }} মোট
+                                @if($isUnlim) ∞ আনলিমিটেড @else {{ $task->quota_remaining }} বাকি / {{ $task->quota_max }} মোট @endif
                             </span>
                         </div>
                         <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
                             <div class="h-full {{ $slotBar }} rounded-full transition-all duration-500"
-                                style="width: {{ $slotPct }}%"></div>
+                                style="width: {{ $isUnlim ? '100' : $slotPct }}%; {{ $isUnlim ? 'opacity:0.3' : '' }}"></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="relative mt-auto">
-                    <a href="{{ route('tasks.show', $task) }}"
-                        class="inline-flex items-center justify-center w-full px-6 py-4 text-xs font-black text-center text-white bg-primary-600 rounded-[24px] hover:bg-white hover:text-dark-card transition-all shadow-xl shadow-primary-900/40 group/btn">
-                        <span class="uppercase tracking-widest">🚀 কাজটি শুরু করুন</span>
-                        <svg class="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                        </svg>
-                    </a>
+                    @if($isLocked)
+                        <div class="inline-flex items-center justify-center w-full px-6 py-4 text-xs font-black text-center text-slate-600 bg-white/5 border border-white/5 rounded-[24px] cursor-not-allowed select-none">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                            <span class="uppercase tracking-widest">🔒 লক আছে</span>
+                        </div>
+                    @else
+                        <a href="{{ route('tasks.show', $task) }}"
+                            class="inline-flex items-center justify-center w-full px-6 py-4 text-xs font-black text-center text-white bg-primary-600 rounded-[24px] hover:bg-white hover:text-dark-card transition-all shadow-xl shadow-primary-900/40 group/btn">
+                            <span class="uppercase tracking-widest">🚀 কাজটি শুরু করুন</span>
+                            <svg class="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                            </svg>
+                        </a>
+                    @endif
                 </div>
             </div>
         @empty
+
             <div
                 class="col-span-full flex flex-col items-center justify-center py-24 bg-dark-card border border-white/5 rounded-[40px] shadow-sm">
                 <div
