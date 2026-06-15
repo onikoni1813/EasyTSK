@@ -52,38 +52,11 @@ class Task extends Model
     /**
      * Check if this task is unlocked for a given user.
      *
-     * Rules:
-     *  - The task with the lowest sort_order is ALWAYS unlocked.
-     *  - Any other task requires an APPROVED submission for the task
-     *    immediately before it (by sort_order).
+     * In this version, the sequential lock system has been disabled.
+     * All tasks are always unlocked.
      */
     public function isUnlockedFor(User $user): bool
     {
-        // First task in sequence — always open
-        $firstOrder = static::where('is_active', true)->min('sort_order');
-        if ($this->sort_order == $firstOrder) {
-            return true;
-        }
-
-        // Find all active, non-optional tasks before this task
-        $prevTasks = static::where('is_active', true)
-            ->where('is_optional', false)
-            ->where('sort_order', '<', $this->sort_order)
-            ->get();
-
-        if ($prevTasks->isEmpty()) {
-            return true; // No required previous tasks — unlock by default
-        }
-
-        $prevTaskIds = $prevTasks->pluck('id')->toArray();
-
-        // Count completed or pending submissions for all required previous tasks
-        $completedCount = Submission::where('user_id', $user->id)
-            ->whereIn('task_id', $prevTaskIds)
-            ->whereIn('status', ['pending', 'approved'])
-            ->distinct()
-            ->count('task_id');
-
-        return $completedCount === count($prevTaskIds);
+        return true;
     }
 }
