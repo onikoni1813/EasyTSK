@@ -37,11 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json(['message' => 'CSRF token mismatch. Please reload the page.'], 419);
             }
 
-            // Redirect based on auth status
-            if (\Illuminate\Support\Facades\Auth::check()) {
-                return redirect()->route('dashboard')->with('error', 'আপনার সেশন টাইমআউট হয়েছে। দয়া করে আবার চেষ্টা করুন।');
-            }
-
-            return redirect()->route('home')->with('error', 'আপনার সেশন টাইমআউট হয়েছে। দয়া করে আবার চেষ্টা করুন।');
+            // Redirect expired sessions directly to the login page with a friendly warning
+            return redirect()->route('login')->with('warning', 'আপনার সেশন টাইমআউট হয়েছে। অনুগ্রহ করে আবার লগইন করুন।');
         });
     })->create();
