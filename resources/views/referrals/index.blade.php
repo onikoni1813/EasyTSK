@@ -40,13 +40,14 @@
                 <span class="text-[10px] font-black text-primary-500 uppercase">লাইফটাইম আর্নিং</span>
             </div>
         </div>
-        <!--<div class="p-6 bg-primary-600 rounded-[32px] shadow-lg shadow-primary-900/40 text-white">
-            <span class="text-[10px] font-black uppercase tracking-widest block mb-1 opacity-70">আপনার কমিশন রেট</span>
-            <h3 class="text-3xl font-black">৫%</h3>
+        <div class="p-6 bg-dark-card border border-white/5 rounded-[32px] shadow-sm">
+            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">লকড রেফারেল বোনাস</span>
+            <h3 class="text-3xl font-black text-rose-500">৳ {{ number_format($totalLockedBonus / \App\Models\Setting::get('point_conversion_rate', 100), 2) }}</h3>
             <div class="mt-4 flex items-center gap-2">
-                <span class="text-[10px] font-black uppercase">প্রতিটি টাস্ক থেকে</span>
+                <span class="w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
+                <span class="text-[10px] font-black text-rose-500 uppercase">🔒 টার্গেট পূরণ হলে পাবেন</span>
             </div>
-        </div>-->
+        </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -110,7 +111,7 @@
                                 class="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5">
                                 <th class="pb-4 pr-4">মেম্বার</th>
                                 <th class="pb-4 pr-4">তারিখ</th>
-                                <th class="pb-4 pr-4">জেনারেটেড প্রফিট</th>
+                                <th class="pb-4 pr-4">অগ্রগতি (Progress)</th>
                                 <th class="pb-4">অবস্থা</th>
                             </tr>
                         </thead>
@@ -134,10 +135,21 @@
                                     <td class="py-5 pr-4 text-xs font-bold text-slate-400">
                                         {{ $ref->created_at->format('d M, Y') }}
                                     </td>
-                                    <td class="py-5 pr-4">
-                                        <span class="text-xs font-black text-primary-500 block">৳
-                                            {{ number_format($ref->profit_generated, 2) }}</span>
-                                        <span class="text-[9px] font-bold text-slate-500 block">মোট অবদান</span>
+                                    <td class="py-5 pr-4 min-w-[150px]">
+                                        @php
+                                            $pct = $ref->progressPercent();
+                                            $earned = optional($ref->referredUser)->total_earned_lifetime ?? 0;
+                                            $target = $ref->unlock_threshold;
+                                        @endphp
+                                        <div class="flex flex-col gap-1.5">
+                                            <div class="flex justify-between items-center text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                                <span>৳ {{ number_format($earned, 2) }} / ৳ {{ number_format($target, 2) }}</span>
+                                                <span class="text-primary-500">{{ $pct }}%</span>
+                                            </div>
+                                            <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                                <div class="h-full bg-gradient-to-r from-primary-600 to-primary-400 rounded-full transition-all duration-500" style="width: {{ $pct }}%"></div>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td class="py-5">
                                         <span

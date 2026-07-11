@@ -67,7 +67,7 @@
 
     <!-- Global Notifications handled in layout.blade.php -->
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
         <!-- Main Balance -->
         <div
             class="relative overflow-hidden p-6 bg-dark-card border border-white/5 rounded-3xl shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 group">
@@ -102,6 +102,33 @@
                             class="text-[10px] font-black text-slate-400 hover:text-primary-500 uppercase tracking-tighter">উইথড্র
                             →</a>
                     @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Locked Refer Balance -->
+        <div
+            class="relative overflow-hidden p-6 bg-dark-card border border-white/5 rounded-3xl shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 group">
+            <div
+                class="absolute -right-4 -top-4 w-24 h-24 bg-rose-500/10 rounded-full group-hover:scale-150 transition-transform duration-700">
+            </div>
+            <div class="relative">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">লকড রেফারেল বোনাস</span>
+                    <div class="p-2 bg-rose-500/20 text-rose-500 rounded-xl shadow-lg border border-rose-500/30">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="flex items-baseline gap-1">
+                    <h3 class="text-3xl font-black text-rose-500">{{ number_format($user->locked_referral_points) }}</h3>
+                    <span class="text-xs font-bold text-slate-500">PTS</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between pt-4 border-t border-white/5">
+                    <span class="text-sm font-bold text-rose-400">৳ {{ $user->locked_referral_in_bdt }} BDT</span>
+                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">🔒 রেফারেল লকড</span>
                 </div>
             </div>
         </div>

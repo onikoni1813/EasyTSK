@@ -121,6 +121,19 @@ class User extends Authenticatable
         return number_format($this->pending_points / $rate, 2);
     }
 
+    /** Total locked referral points for this user */
+    public function getLockedReferralPointsAttribute(): int
+    {
+        return (int) $this->referralsMade()->where('status', 'Locked')->sum('bonus_points');
+    }
+
+    /** Total locked referral balance in BDT */
+    public function getLockedReferralInBdtAttribute(): string
+    {
+        $rate = (int) setting('point_conversion_rate', 100);
+        return number_format($this->locked_referral_points / $rate, 2);
+    }
+
     /** Total withdrawn in BDT */
     public function getTotalWithdrawnBdtAttribute(): float
     {

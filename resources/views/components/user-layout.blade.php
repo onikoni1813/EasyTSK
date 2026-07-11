@@ -228,6 +228,18 @@
                                 </span>
                             </div>
                         </a>
+                        <a href="{{ route('referrals.index') }}" class="hidden md:flex flex-col items-end group">
+                            <span
+                                class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1 group-hover:text-rose-400 transition-colors">লকড রেফারেল</span>
+                            <div
+                                class="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full border border-white/5 group-hover:bg-white/10 transition-all text-slate-400">
+                                <span class="text-rose-400 font-bold">🔒</span>
+                                <span class="text-sm font-black text-white">
+                                    {{ number_format(auth()->user()->locked_referral_points) }} <span
+                                        class="text-[10px] text-slate-300 uppercase tracking-tighter">Pts</span>
+                                </span>
+                            </div>
+                        </a>
                     @endauth
                     <div class="flex items-center gap-4">
                         @auth
